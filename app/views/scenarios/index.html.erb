@@ -3,18 +3,18 @@
     <div class='col-md-12'>
       <div class="page-header">
         <h2>
-          Your Scenarios
+          您的场景
         </h2>
       </div>
 
-      <blockquote>Scenarios are named groups of Agents.  Scenarios allow you to organize your agents,
-        and to import and export sets of Agents to share.</blockquote>
+      <blockquote>场景包含一组机器人.  场景允许你将你的机器人们组织起来应对不同场景,
+        你还可以导入一组机器人组合，或者导出分享给他人.</blockquote>
 
       <table class='table table-striped'>
         <tr>
-          <th><%= sortable_column 'name', 'asc' %></th>
-          <th>Agents</th>
-          <th><%= sortable_column 'public' %></th>
+          <th><%= sortable_column '名称', 'asc' %></th>
+          <th>代理数</th>
+          <th><%= sortable_column '是否公开' %></th>
           <th></th>
         </tr>
 
@@ -32,10 +32,10 @@
             <td><%= scenario.public? ? "yes" : "no" %></td>
             <td>
               <div class="btn-group btn-group-xs" style="float: right">
-                <%= link_to 'Show', scenario, class: "btn btn-default" %>
-                <%= link_to 'Edit', edit_scenario_path(scenario), class: "btn btn-default" %>
-                <%= link_to 'Share', share_scenario_path(scenario), class: "btn btn-default" %>
-                <%= link_to 'Delete', '#', data: { toggle: 'modal', target: "#confirm-scenario-deletion-#{scenario.id}"}, class: "btn btn-default" %>
+                <%= link_to '展示', scenario, class: "btn btn-default" %>
+                <%= link_to '编辑', edit_scenario_path(scenario), class: "btn btn-default" %>
+                <%= link_to '分享', share_scenario_path(scenario), class: "btn btn-default" %>
+                <%= link_to '删除', '#', data: { toggle: 'modal', target: "#confirm-scenario-deletion-#{scenario.id}"}, class: "btn btn-default" %>
               </div>
               <%= render 'scenarios/confirm_deletion_modal', scenario: scenario %>
             </td>
@@ -48,8 +48,8 @@
       <br/>
 
       <div class="btn-group">
-        <%= link_to icon_tag('glyphicon-plus') + ' New Scenario'.html_safe, new_scenario_path, class: "btn btn-default" %>
-        <%= link_to icon_tag('glyphicon-cloud-upload') + ' Import Scenario'.html_safe, new_scenario_imports_path, class: "btn btn-default" %>
+        <%= link_to icon_tag('glyphicon-plus') + ' 新建场景'.html_safe, new_scenario_path, class: "btn btn-default" %>
+        <%= link_to icon_tag('glyphicon-cloud-upload') + ' 导入场景'.html_safe, new_scenario_imports_path, class: "btn btn-default" %>
       </div>
     </div>
   </div>

@@ -3,7 +3,7 @@
 <%= javascript_include_tag "map_marker" %>
 <% end -%>
 
-<h3>Recent Event Map</h3>
+<h3>最近的事件地图</h3>
 
 <% events = @agent.events.with_location.order("id desc").limit(500) %>
 <% if events.length > 0 %>
@@ -54,24 +54,24 @@
   </script>
 <% else %>
   <p>
-    No events found.
+    没有发现事件.
   </p>
 <% end %>
 
 <div class="hidden toggle-accuracy checkbox">
   <label>
     <input id="toggle" type="checkbox" value="">
-    Show accuracy of locations
+    显示位置的准确性
   </label>
 </div>
 
 <h3>POST URL</h3>
 
 <p>
-  Location data containing <code>latitude</code> and <code>longitude</code> can be posted to this URL:<br/>
+包含<code> 纬度 </ code>和<code>经度</ code>的位置数据可以发布到此URL:<br/>
 
   <ul>
     <li><code class="selectable-text"><%= web_requests_url(user_id: @agent.user_id, agent_id: @agent.id, secret: @agent.options['secret']) %></code></li>
   </ul>
 </p>
-<p>The data can also include <code>radius</code>, <code>speed</code>, and <code>course</code> values.</p>
+<p>数据还可以包括<code> radius </ code>，<code> speed </ code>和<code> course </ code>值.</p>

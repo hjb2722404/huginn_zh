@@ -3,20 +3,20 @@
     <div class='col-md-12'>
       <div class="page-header">
         <h2>
-          Users
+          用户
         </h2>
       </div>
 
       <div class='table-responsive'>
         <table class='table table-striped events'>
           <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>State</th>
-            <th>Active agents</th>
-            <th>Deactivated agents</th>
-            <th>Registered since</th>
-            <th>Options</th>
+            <th>用户名</th>
+            <th>邮箱</th>
+            <th>状态</th>
+            <th>活动代理数</th>
+            <th>被解除的代理数</th>
+            <th>注册日期</th>
+            <th>选项</th>
           </tr>
 
           <% @users.each do |user| %>
@@ -47,7 +47,7 @@
       <%= paginate @users, theme: 'twitter-bootstrap-3' %>
 
       <div class="btn-group">
-        <%= link_to icon_tag('glyphicon-plus') + ' New User', new_admin_user_path, class: "btn btn-default" %>
+        <%= link_to icon_tag('glyphicon-plus') + ' 新建用户', new_admin_user_path, class: "btn btn-default" %>
       </div>
     </div>
   </div>

@@ -3,18 +3,18 @@
     <% if @scenario_import.dangerous? %>
       <div class="alert alert-danger">
         <span class='glyphicon glyphicon-warning-sign'></span>
-        This Scenario contains one or more potentially dangerous Agents.
-        These may be able to run local commands or execute code.
-        Please be sure that you understand the Agent configurations before importing!
+        此方案包含一个或多个潜在危险的代理。
+         这些可能能够运行本地命令或执行代码。
+         导入前请确保您了解代理配置！
       </div>
     <% end %>
 
     <% if @scenario_import.existing_scenario.present? %>
       <div class="alert alert-warning">
         <span class='glyphicon glyphicon-warning-sign'></span>
-        This Scenario already exists in your system. The import will update your existing
-        <%= scenario_label(@scenario_import.existing_scenario) %> Scenario's title,
-        description, and tag colors. Below you can customize how the individual agents get updated.
+        此方案已存在于您的系统中。 导入将更新您现有的
+        <%= scenario_label(@scenario_import.existing_scenario) %> 场景的标题，
+                 描述和标签颜色。 您可以在下面自定义各个代理的更新方式.
       </div>
     <% end %>
 
@@ -44,19 +44,19 @@
           <h3>
             <a href='#' data-toggle="modal" data-target="#agent_options_<%= index %>"><%= agent_diff.name.incoming %></a>
             <span class='text-muted'>
-              (<%= agent_diff.type.incoming %><% " -- WARNING: this Agent's type has been changed.  This import will likely fail!" if agent_diff.type.requires_merge? %>)
+              (<%= agent_diff.type.incoming %><% " - 警告：此代理的类型已更改。 这种导入可能会失败！" if agent_diff.type.requires_merge? %>)
             </span>
           </h3>
 
           <% if agent_diff.agent_exists? %>
             <div class="instructions">
-              This Agent exists in your Huginn system.
+            此代理存在于您的Huginn系统中.
 
               <% if agent_diff.requires_merge? %>
-                Here are the differences between the incoming version and the one you have now. For each field, please
-                select which value you'd like to keep.
+              以下是传入版本与您现有版本之间的差异。 请为每个领域
+                               选择您想要保留的值.
               <% else %>
-                It's already up-to-date.
+              它已经是最新的.
               <% end %>
             </div>
           <% end %>
@@ -84,13 +84,13 @@
               <%= label_tag "scenario_import[merges][#{index}][#{field}]", field.titleize %>
               <% if selection_options.present? %>
                 <div>
-                  Your current Agent's value is:
+                您当前代理的值是:
                   <span class='current'><%= selection_options.find { |s| s.last.to_s == value.current.to_s }.first %></span>
                 </div>
                 <%= select_tag "scenario_import[merges][#{index}][#{field}]", options_for_select(selection_options, value.updated), :class => 'form-control' %>
               <% else %>
                 <div>
-                  Your current Agent's value is: <span class='current'><%= value.current.to_s %></span>
+                您当前代理的值是: <span class='current'><%= value.current.to_s %></span>
                 </div>
                 <%= text_field_tag "scenario_import[merges][#{index}][#{field}]", value.updated, :class => 'form-control' %>
               <% end %>
@@ -102,7 +102,7 @@
       <div class='row'>
         <% if agent_diff.options.requires_merge? %>
           <div class='col-md-12'>
-            <label>Options</label>
+            <label>配置</label>
           </div>
 
           <div class='col-md-6'>
@@ -113,7 +113,7 @@
 
           <div class='col-md-6'>
             <div>
-              Your current options:
+            您当前的选择：
             </div>
             <pre class='options'><%= Utils.pretty_jsonify agent_diff.options.current %></pre>
           </div>
@@ -124,7 +124,7 @@
         <div class='row'>
           <div class='col-md-4'>
             <div class="form-group type-select">
-              <%= label_tag "scenario_import[merges][#{index}][service_id]", 'Service' %>
+              <%= label_tag "scenario_import[merges][#{index}][service_id]", '服务' %>
               <%= select_tag "scenario_import[merges][#{index}][service_id]", options_for_select(agent_diff.agent_instance.valid_services_for(current_user).collect { |s| ["(#{s.provider}) #{s.name}", s.id]}, agent_diff.agent.try(:service_id)), class: 'form-control' %>
             </div>
           </div>
@@ -138,7 +138,7 @@
   <div class='col-md-12'>
     <div class="checkbox">
       <%= f.label :do_import do %>
-        <%= f.check_box :do_import %> I confirm that I want to import these Agents.
+        <%= f.check_box :do_import %> 我确认我要导入这些代理.
       <% end %>
     </div>
 

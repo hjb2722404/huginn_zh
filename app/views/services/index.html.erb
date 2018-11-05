@@ -3,13 +3,13 @@
     <div class='col-md-12'>
       <div class="page-header">
         <h2>
-          Your Services
+          您的服务
         </h2>
       </div>
       <p>
-        Before you can authenticate with a service, you need to set it up. Have a look at the Huginn
+      在您使用服务进行身份验证之前，您需要进行设置。 看看Huginn
         <%= link_to 'wiki', 'https://github.com/cantino/huginn/wiki/Configuring-OAuth-applications', target: :_blank %>
-        for guidance.
+        的指导.
       </p>
       <%- Devise.omniauth_providers.each { |provider| -%>
         <p><%= omniauth_button(provider) %></p>
@@ -19,9 +19,9 @@
       <div class='table-responsive'>
         <table class='table table-striped events'>
           <tr>
-            <th><%= sortable_column 'provider', 'asc' %></th>
-            <th><%= sortable_column 'name', 'asc' %></th>
-            <th><%= sortable_column 'global', name: 'Global?' %></th>
+            <th><%= sortable_column '提供者', 'asc' %></th>
+            <th><%= sortable_column '名称', 'asc' %></th>
+            <th><%= sortable_column '全局', name: 'Global?' %></th>
             <th></th>
           </tr>
 
@@ -33,11 +33,11 @@
             <td>
               <div class="btn-group btn-group-xs">
                 <% if service.global %>
-                  <%= link_to 'Make private', toggle_availability_service_path(service), method: :post, data: { confirm: 'Are you sure you want to remove access to your data on this service for other users?'}, class: "btn btn-default" %>
+                  <%= link_to '私密', toggle_availability_service_path(service), method: :post, data: { confirm: '您确定要删除其他用户对此服务的数据访问权限吗?'}, class: "btn btn-default" %>
                 <% else %>
-                   <%= link_to 'Make global', toggle_availability_service_path(service), method: :post, data: { confirm: 'Are you sure you want to grant every user on this system access to your data on this service?'}, class: "btn btn-default" %>
+                   <%= link_to '全局', toggle_availability_service_path(service), method: :post, data: { confirm: '您确定要授予此系统上的每个用户访问此服务上的数据的权限?'}, class: "btn btn-default" %>
                 <% end %>
-                <%= link_to 'Delete', service_path(service), method: :delete, data: { confirm: 'Are you sure?' }, class: "btn btn-default btn-danger" %>
+                <%= link_to '公开', service_path(service), method: :delete, data: { confirm: '您确定吗?' }, class: "btn btn-default btn-danger" %>
               </div>
             </td>
           </tr>

@@ -3,7 +3,7 @@
     <% if agent.persisted? %>
       <%= hidden_field_tag 'agent[type]', @agent.type %>
     <% end %>
-    <legend>Options</legend>
+    <legend>配置</legend>
     <% agent.form_configurable_attributes.each do |attribute| %>
       <div class="form-group">
         <%= label_tag attribute %>

@@ -1,14 +1,14 @@
 <p>
-  Use this form to manually emit Events from this Agent (usually for testing).
+使用此表单从此代理手动发出事件（通常用于测试）.
 </p>
 
 <p>
-  If you add a top-level key called <code>payloads</code> that points to an array of objects, they will be emitted as a series
-  of Events.  Otherwise, everything entered will be emitted as a single Event.
+如果添加一个名为 <code> payloads </ code>的顶级键，它指向一个对象数组，它们将作为一个系列发出
+   事件 否则，输入的所有内容将作为单个事件发出.
 </p>
 
 <p>
-  Liquid formatting is supported.
+  支持 Liquid 格式.
 </p>
 
 <h4 id='event-creation-status'></h4>
@@ -20,7 +20,7 @@
     </textarea>
   </div>
 
-  <%= submit_tag "Submit", :class => "btn btn-primary" %>
+  <%= submit_tag "提交", :class => "btn btn-primary" %>
 <% end %>
 
 <script>
@@ -37,13 +37,13 @@
         dataType: "JSON",
         success: function(json) {
           if (json.success) {
-            $status.text("Success!");
+            $status.text("成功!");
           } else {
-            $status.text("An error occurred: " + json.error);
+            $status.text("错误: " + json.error);
           }
         },
         error: function(response) {
-          $status.text("An error occurred: " + response.responseText)
+          $status.text("错误: " + response.responseText)
         }
       });
     });

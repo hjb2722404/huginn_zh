@@ -12,17 +12,17 @@
   
   <% if user_signed_in? %>
     <ul class='nav navbar-nav'>
-      <%= nav_link "Agents", agents_path do %>
+      <%= nav_link "代理", agents_path do %>
         <ul class='dropdown-menu' role='menu'>
-          <%= nav_link icon_tag('glyphicon-plus') + " New Agent", new_agent_path %>
-          <%= nav_link icon_tag('glyphicon-refresh') + " Run event propagation", propagate_agents_path, method: 'post' %>
-          <%= nav_link icon_tag('glyphicon-random') + " View Diagram", diagram_path %>
+          <%= nav_link icon_tag('glyphicon-plus') + " 新建代理", new_agent_path %>
+          <%= nav_link icon_tag('glyphicon-refresh') + " 运行事件链", propagate_agents_path, method: 'post' %>
+          <%= nav_link icon_tag('glyphicon-random') + " 查看流程图", diagram_path %>
         </ul>
       <% end %>
-      <%= nav_link "Scenarios", scenarios_path %>
-      <%= nav_link "Events", events_path %>
-      <%= nav_link "Credentials", user_credentials_path %>
-      <%= nav_link "Services", services_path %>
+      <%= nav_link "场景", scenarios_path %>
+      <%= nav_link "事件", events_path %>
+      <%= nav_link "证书", user_credentials_path %>
+      <%= nav_link "服务", services_path %>
     </ul>
   <% end %>
   
@@ -30,7 +30,7 @@
     <% if user_signed_in? %>
       <form class="navbar-form navbar-left visible-lg" role="search">
         <div class="form-group">
-          <input type="text" class="form-control" id='agent-navigate' autocomplete="off" placeholder="Search">
+          <input type="text" class="form-control" id='agent-navigate' autocomplete="off" placeholder="搜索">
           <%= image_tag "spinner-arrows.gif", :class => "spinner" %>
         </div>
       </form>
@@ -59,34 +59,42 @@
     
     <li class="dropdown">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-        Account
+        账户
+        <% if user_signed_in? && session[:original_admin_user_id].present? %>
+          <span class="label label-warning"><%= current_user.username %></span>
+        <% end %>
         <b class="caret"></b>
       </a>
       <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+        <% if user_signed_in? && session[:original_admin_user_id].present? %>
+          <li>
+            <%= link_to 'Switch Back to Admin User', switch_back_admin_users_path, tabindex: '-1' %>
+          </li>
+        <% end %>
         <li>
           <% if user_signed_in? %>
-            <%= link_to 'Account', edit_user_registration_path, :tabindex => "-1" %>
+            <%= link_to '账户', edit_user_registration_path, :tabindex => "-1" %>
           <% else %>
-            <%= link_to 'Sign up', new_user_registration_path, :tabindex => "-1" %>
+            <%= link_to '注册', new_user_registration_path, :tabindex => "-1" %>
           <% end %>
         </li>
         <% if user_signed_in? && current_user.admin %>
           <li>
-            <%= link_to 'Job Management', jobs_path, :tabindex => '-1' %>
+            <%= link_to '任务管理', jobs_path, :tabindex => '-1' %>
           </li>
           <li>
-            <%= link_to 'User Management', admin_users_path, tabindex: '-1' %>
+            <%= link_to '用户管理', admin_users_path, tabindex: '-1' %>
           </li>
         <% end %>
         <li>
-          <%= link_to 'About', 'https://github.com/cantino/huginn', :tabindex => "-1" %>
+          <%= link_to '关于', 'https://github.com/huginn/huginn', :tabindex => "-1" %>
         </li>
 
         <li>
           <% if user_signed_in? %>
-            <%= link_to 'Logout', destroy_user_session_path, :method => :delete, :tabindex => "-1" %>
+            <%= link_to '登出', destroy_user_session_path, :method => :delete, :tabindex => "-1" %>
           <% else %>
-            <%= link_to 'Login', new_user_session_path, :tabindex => "-1" %>
+            <%= link_to '登录', new_user_session_path, :tabindex => "-1" %>
           <% end %>
         </li>
       </ul>

@@ -3,7 +3,7 @@
   <div class='row'>
     <div class='col-md-12'>
       <div class="page-header">
-        <h2>Welcome to Huginn!</h2>
+        <h2>欢迎使用Huginn!</h2>
       </div>
     </div>
   </div>
@@ -11,20 +11,20 @@
   <div class='row'>
     <div class='col-md-6'>
       <p>
-        You have created <span class="text-success"><%= pluralize current_user.agents.count, "agent" %></span>.
+        您已经创建了 <span class="text-success"><%= pluralize current_user.agents.count, "agent" %></span>.
       </p>
       <p>
-        <%= link_to 'View <i class="icon-chevron-right"></i>'.html_safe, agents_path, class: "btn btn-primary" %>
+        <%= link_to '查看 <i class="icon-chevron-right"></i>'.html_safe, agents_path, class: "btn btn-primary" %>
       </p>
     </div>
     <div class='col-md-6'>
       <p>
-        Your agents have recorded
-        <span class="text-success"><%= pluralize current_user.events.recent.count, "event" %> recently</span> and
-        <span class=""><%= pluralize current_user.events.count, 'event' %> in total</span>.
+        您的助手已经记录下了最近的
+        <span class="text-success"><%= pluralize current_user.events.recent.count, "个事件" %> </span> ，总共记录
+        <span class=""><%= pluralize current_user.events.count, '个事件' %> </span>.
       </p>
       <p>
-        <%= link_to 'View <i class="icon-chevron-right"></i>'.html_safe, events_path, class: "btn btn-primary" %>
+        <%= link_to '查看 <i class="icon-chevron-right"></i>'.html_safe, events_path, class: "btn btn-primary" %>
       </p>
     </div>
   </div>
@@ -34,9 +34,7 @@
   <div class='row'>
     <div class='col-md-10'>
       <blockquote>
-        <p>...two ravens named Huginn and Muninn sit on Odin's shoulders. The ravens tell Odin everything they see and
-          hear. Odin sends Huginn and Muninn out at dawn, and the birds fly all over the world before returning at
-          dinner-time. As a result, Odin is kept informed of many events.</p>
+        <p>奥丁的肩膀上坐着两只乌鸦，一只名叫Huginn，一只名叫Muninn。这两只乌鸦告诉奥丁他们的所见所闻，毫无遗漏。奥丁在黎明时派出它们，它们飞遍全世界然后再晚餐之前回来汇报，因此，奥丁掌握着许许多多的事件.</p>
           <small><a href="http://en.wikipedia.org/wiki/Huginn_and_Muninn">Wikipedia</a>, in reference to
             <em>Gylfaginning</em></small>
       </blockquote>

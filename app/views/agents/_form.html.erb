@@ -2,7 +2,7 @@
 
 <% if @agent.errors.any? %>
   <div class="row well model-errors">
-    <h2><%= pluralize(@agent.errors.count, "error") %> prohibited this Agent from being saved:</h2>
+    <h2><%= pluralize(@agent.errors.count, "错误") %> 禁止此代理被保存:</h2>
     <% @agent.errors.full_messages.each do |msg| %>
       <p class='text-warning'><%= msg %></p>
     <% end %>
@@ -47,16 +47,16 @@
                 <div class="can-be-scheduled">
                   <%= f.select :schedule, options_for_select(Agent::SCHEDULES.map {|s| [s.humanize.titleize, s] }, @agent.schedule), {}, :class => 'form-control' %>
                 </div>
-                <span class='cannot-be-scheduled text-info'>This type of Agent cannot be scheduled.</span>
+                <span class='cannot-be-scheduled text-info'>无法安排此类代理.</span>
               </div>
             </div>
 
             <div class="controller-region" data-has-controllers="<%= !@agent.controllers.empty? %>">
               <div class="form-group">
                 <%= f.label :controllers %>
-                <span class="glyphicon glyphicon-question-sign hover-help" data-content="Other than the system-defined schedule above, this agent may be run or controlled by these user-defined Agents."></span>
+                <span class="glyphicon glyphicon-question-sign hover-help" data-content="除了上面的系统定义的时间表之外，此代理可以由这些用户定义的代理运行或控制."></span>
                 <div class="controller-list">
-                  <%= agent_controllers(@agent) || 'None' %>
+                  <%= agent_controllers(@agent) || '无' %>
                 </div>
               </div>
             </div>
@@ -76,46 +76,46 @@
             <div class='event-related-region' data-can-create-events="<%= @agent.can_create_events? %>">
               <div class="form-group">
                 <%= f.label :keep_events_for, "Keep events" %>
-                <span class="glyphicon glyphicon-question-sign hover-help" data-content="In order to conserve disk space, you can choose to have events created by this Agent expire after a certain period of time.  Make sure you keep them long enough to allow any subsequent Agents to make use of them."></span>
+                <span class="glyphicon glyphicon-question-sign hover-help" data-content="为了节省磁盘空间，您可以选择让此代理创建的事件在一段时间后过期。 确保将它们保持足够长的时间以允许任何后续代理使用它们."></span>
                 <%= f.select :keep_events_for, options_for_select(Agent::EVENT_RETENTION_SCHEDULES, @agent.keep_events_for), {}, :class => 'form-control' %>
               </div>
             </div>
 
             <div class="form-group">
               <%= f.label :sources %>
-              <span class="glyphicon glyphicon-question-sign hover-help" data-content="This Agent will receive events from the selected Agents."></span>
+              <span class="glyphicon glyphicon-question-sign hover-help" data-content="此代理将从所选代理接收事件."></span>
               <div class="link-region" data-can-receive-events="<%= @agent.can_receive_events? %>">
                 <% eventSources = (current_user.agents - [@agent]).find_all { |a| a.can_create_events? } %>
                 <%= f.select(:source_ids,
                              options_for_select(eventSources.map {|s| [s.name, s.id] },
                                                 @agent.source_ids),
                              {}, { :multiple => true, :size => 5, :class => 'select2-linked-tags form-control', data: {url_prefix: '/agents'} }) %>
-                <span class='cannot-receive-events text-info'>This type of Agent cannot receive events.</span>
+                <span class='cannot-receive-events text-info'>此类代理无法接收事件.</span>
                 <%= f.label :propagate_immediately, :class => 'propagate-immediately' do %>Propagate immediately
                   <%= f.check_box :propagate_immediately %>
                   &nbsp;
-                  <span class="glyphicon glyphicon-question-sign hover-help" data-content="Normally, Huginn moves Events from source Agents to receiving Agents once per minute. Checking this option will cause Events created by this Agent's sources to be received immediately. This can use more CPU resources, but will decrease the time between Event creation and being received by this Agent."></span>
+                  <span class="glyphicon glyphicon-question-sign hover-help" data-content="通常，Huginn每分钟将事件从源代理移动到接收代理一次。 选中此选项将导致立即接收此代理的源创建的事件。 这可以使用更多的CPU资源，但会减少事件创建和此代理接收之间的时间."></span>
                 <% end %>
               </div>
             </div>
 
             <div class="form-group">
               <%= f.label :receivers %>
-              <span class="glyphicon glyphicon-question-sign hover-help" data-content="Events created by this Agent will be sent to the selected Agents."></span>
+              <span class="glyphicon glyphicon-question-sign hover-help" data-content="此代理创建的事件将发送到选定的代理."></span>
               <div class="event-related-region">
                 <% eventTargets = (current_user.agents - [@agent]).find_all { |a| a.can_receive_events? } %>
                 <%= f.select(:receiver_ids,
                              options_for_select(eventTargets.map {|s| [s.name, s.id] },
                                                 @agent.receiver_ids),
                              {}, { :multiple => true, :size => 5, :class => 'select2-linked-tags form-control', data: {url_prefix: '/agents'} }) %>
-                <span class='cannot-create-events text-info'>This type of Agent cannot create events.</span>
+                <span class='cannot-create-events text-info'>此类代理无法创建事件.</span>
               </div>
             </div>
 
             <% if current_user.scenario_count > 0 %>
               <div class="form-group">
                 <%= f.label :scenarios %>
-                <span class="glyphicon glyphicon-question-sign hover-help" data-content="Use Scenarios to group sets of Agents, both for organization, and to make them easy to export and share."></span>
+                <span class="glyphicon glyphicon-question-sign hover-help" data-content="使用方案可以为组织分组代理集，并使它们易于导出和共享."></span>
                 <%= f.select(:scenario_ids,
                              options_for_select(current_user.scenarios.pluck(:name, :id), @agent.scenario_ids),
                              {}, { :multiple => true, :size => 5, :class => 'select2-linked-tags form-control', data: {url_prefix: '/scenarios'} }) %>
