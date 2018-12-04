@@ -1,39 +1,39 @@
-require "tumblr_client"
-
 module Agents
   class TumblrPublishAgent < Agent
     include TumblrConcern
 
     cannot_be_scheduled!
 
+    gem_dependency_check { defined?(Tumblr::Client) }
+
     description <<-MD
-      The Tumblr Publish Agent publishes Tumblr posts from the events it receives.
+      Tumblr Publish Agent从收到的事件中发布Tumblr帖子.
 
       #{'## Include `tumblr_client` and `omniauth-tumblr` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      To be able to use this Agent you need to authenticate with Tumblr in the [Services](/services) section first.
+      为了能够使用此代理，您需要首先在[“服务”](/services)部分中使用Tumblr进行身份验证.
 
 
 
-      **Required fields:**
+      **必填字段：**
 
-      `blog_name` Your Tumblr URL (e.g. "mustardhamsters.tumblr.com")
+      `blog_name` 您的Tumblr URL（例如“mustardhamsters.tumblr.com”）
 
-      `post_type` One of [text, photo, quote, link, chat, audio, video, reblog]
+      `post_type`   [text, photo, quote, link, chat, audio, video, reblog] 之一
 
 
       -------------
 
-      You may leave any of the following optional fields blank. Including a field not allowed for the specified `post_type` will cause a failure.
+      您可以将以下任何可选字段留空。 包含指定post_type不允许的字段将导致失败
 
-      **Any post type**
+      **任何帖子类型**
 
-      * `state` published, draft, queue, private
-      * `tags` Comma-separated tags for this post
-      * `tweet` off, text for tweet
-      * `date` GMT date and time of the post as a string
+      * `state` 发布，草稿，队列，私人
+      * `tags` 此帖子的逗号分隔标签
+      * `tweet` 关闭，推文的文字
+      * `date` GMT作为字符串的日期和时间
       * `format` html, markdown
-      * `slug` short text summary at end of the post URL
+      * `slug`  帖子网址末尾的简短文字摘要
 
       **Text** `title` `body`
 
@@ -53,12 +53,10 @@ module Agents
 
       -------------
 
-      [Full information on field options](https://www.tumblr.com/docs/en/api/v2#posting)
+      [ 有关字段选项的完整信息](https://www.tumblr.com/docs/en/api/v2#posting)
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.
+      将`expected_update_period_in_days`设置为您希望在此代理创建的事件之间传递的最长时间
     MD
-
-    gem_dependency_check { defined?(Tumblr) }
 
     def validate_options
       errors.add(:base, "expected_update_period_in_days is required") unless options['expected_update_period_in_days'].present?

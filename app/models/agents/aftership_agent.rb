@@ -8,20 +8,17 @@ module Agents
     default_schedule "every_10m"
 
     description <<-MD
-      The Aftership agent allows you to track your shipment from aftership and emit them into events.
+      The Aftership agent  允许您从收货后跟踪货物并将其发送到事件中。(Aftership为电子商务企业提供货物追踪方案的服务)
 
-      To be able to use the Aftership API, you need to generate an `API Key`. You need a paying plan to use their tracking feature.
+      为了能够使用Aftership API，您需要生成API密钥。 您需要付费计划才能使用其跟踪功能。
 
-      You can use this agent to retrieve tracking data.
+      您可以使用此代理检索跟踪数据。
  
-      Provide the `path` for the API endpoint that you'd like to hit. For example, for all active packages, enter `trackings` 
-      (see https://www.aftership.com/docs/api/4/trackings), for a specific package, use `trackings/SLUG/TRACKING_NUMBER` 
-      and replace `SLUG` with a courier code and `TRACKING_NUMBER` with the tracking number. You can request last checkpoint of a package 
-      by providing `last_checkpoint/SLUG/TRACKING_NUMBER` instead.
+      提供您想要访问的API端点的路径。 例如，对于所有活动包，请输入跟踪（请参阅https://www.aftership.com/docs/api/4/trackings），对于特定包，使用跟踪/ SLUG / TRACKING_NUMBER并将SLUG替换为快递代码， 跟踪号码的TRACKING_NUMBER。 您可以通过提供last_checkpoint / SLUG / TRACKING_NUMBER来请求包的最后一个检查点。
 
-      You can get a list of courier information here `https://www.aftership.com/courier`
+      您可以在`https://www.aftership.com/courier`获取快递信息列表
 
-      Required Options:
+      必需选项：
 
       * `api_key` - YOUR_API_KEY.
       * `path request and its full path`

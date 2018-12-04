@@ -1,0 +1,46 @@
+<div id="confirm-scenario-deletion-<%= scenario.id %>" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <%= form_for(scenario, url: scenario_path(scenario), method: :delete) do |f| %>
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title">
+            <% if @scenario && @scenario == scenario %>
+              您希望如何删除场景?
+            <% else %>
+              你希望如何删除 '<%= scenario.name %>'?
+            <% end %>
+          </h4>
+        </div>
+        <div class="modal-body">
+          <div class="radio">
+            <%= label_tag do %>
+              <%= radio_button_tag :mode, '', true %>
+              <h4><span class="label label-success">仅删除场景</span></h4>
+              仅删除场景，保留代理.
+            <% end %>
+          </div>
+          <div class="radio">
+            <%= label_tag do %>
+              <%= radio_button_tag :mode, :unique_agents %>
+              <h4><span class="label label-warning">场景和直属代理</span></h4>
+              删除场景和仅在此场景中使用的代理（推荐）.
+            <% end %>
+          </div>
+          <div class="radio">
+            <%= label_tag do %>
+              <%= radio_button_tag :mode, :all_agents %>
+              <h4><span class="label label-danger">场景和所有代理</span></h4>
+              删除场景和所有代理，哪怕这些代理正在别的场景中使用。
+            <% end %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <%= f.button '中止', class: 'btn btn-default', 'data-dismiss' => 'modal' %>
+          <%= f.submit '删除', class: 'btn btn-danger' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+

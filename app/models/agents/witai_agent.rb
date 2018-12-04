@@ -4,11 +4,11 @@ module Agents
     no_bulk_receive!
 
     description <<-MD
-      The `wit.ai` agent receives events, sends a text query to your `wit.ai` instance and generates outcome events.
+      wit.ai代理接收事件，向您的wit.ai实例发送文本查询并生成结果事件。
 
-      Fill in `Server Access Token` of your `wit.ai` instance. Use [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) to fill query field.
+      填写wit.ai实例的服务器访问令牌。 使用Liquid填充查询字段
       
-      `expected_receive_period_in_days` is the expected number of days by which agent should receive events. It helps in determining if the agent is working.
+      `expected_receive_period_in_days` 是代理应该接收事件的预期天数。 它有助于确定代理是否正常工作。
     MD
 
     event_description <<-MD

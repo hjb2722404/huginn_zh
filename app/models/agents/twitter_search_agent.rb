@@ -5,23 +5,23 @@ module Agents
     cannot_receive_events!
 
     description <<-MD
-      The Twitter Search Agent performs and emits the results of a specified Twitter search.
+      Twitter搜索代理执行并发出指定Twitter搜索的结果。
 
       #{twitter_dependencies_missing if dependencies_missing?}
 
-      If you want realtime data from Twitter about frequent terms, you should definitely use the Twitter Stream Agent instead.
+      如果你想从Twitter获得关于频繁更新的条目的实时数据，你肯定应该使用Twitter Stream Agent。
 
-      To be able to use this Agent you need to authenticate with Twitter in the [Services](/services) section first.
+      为了能够使用此代理，您需要首先在[“服务”](/services)部分中使用Twitter进行身份验证。
 
-      You must provide the desired `search`.
+      您必须提供所需的 `search`.
       
-      Set `result_type` to specify which [type of search results](https://dev.twitter.com/rest/reference/get/search/tweets) you would prefer to receive. Options are "mixed", "recent", and "popular". (default: `mixed`)
+      设置result_type以指定您希望接收哪种[类型](https://dev.twitter.com/rest/reference/get/search/tweets) 的搜索结果。 选项是“mixed”(混合)，“recent”（近期）和“popular”（流行）。 （默认：mixed）
 
-      Set `max_results` to limit the amount of results to retrieve per run(default: `500`. The API rate limit is ~18,000 per 15 minutes. [Click here to learn more about rate limits](https://dev.twitter.com/rest/public/rate-limiting).
+      设置max_results以限制每次运行检索的结果数量（默认值：500。API速率限制为每15分钟约18,000。[点击此处](https://dev.twitter.com/rest/public/rate-limiting)了解有关速率限制的更多信息。
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.
+      将expected_update_period_in_days设置为您希望在此代理创建的事件之间传递的最长时间。
 
-      Set `starting_at` to the date/time (eg. `Mon Jun 02 00:38:12 +0000 2014`) you want to start receiving tweets from (default: agent's `created_at`)
+      将starting_at设置为日期/时间（例如，2014年6月2日00:38:12 +0000）你想开始接收推文（默认：代理商的created_at）
     MD
 
     event_description <<-MD
@@ -84,7 +84,7 @@ module Agents
 
     def check
       since_id = memory['since_id'] || nil
-      opts = {include_entities: true}
+      opts = {include_entities: true, tweet_mode: 'extended'}
       opts.merge! result_type: interpolated[:result_type] if interpolated[:result_type].present?
       opts.merge! since_id: since_id unless since_id.nil?
 

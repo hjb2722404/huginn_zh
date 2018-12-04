@@ -3,15 +3,15 @@ module Agents
     cannot_receive_events!
 
     description <<-MD
-      The StubHub Agent creates an event for a given StubHub Event.
+      StubHub代理为给定的StubHub事件创建事件。
 
-      It can be used to track how many tickets are available for the event and the minimum and maximum price. All that is required is that you paste in the url from the actual event, e.g. http://www.stubhub.com/outside-lands-music-festival-tickets/outside-lands-music-festival-3-day-pass-san-francisco-golden-gate-park-polo-fields-8-8-2014-9020701/
+      它可用于跟踪活动可获得的门票数量以及最低和最高价格。 所需的只是您粘贴实际事件的网址，例如 https://www.stubhub.com/outside-lands-music-festival-tickets/outside-lands-music-festival-3-day-pass-san-francisco-golden-gate-park-polo-fields-8- 8-2014-9020701 /
     MD
 
     event_description <<-MD
       Events looks like this:
         {
-          "url": "http://stubhub.com/valid-event-url"
+          "url": "https://stubhub.com/valid-event-url"
           "name": "Event Name"
           "date": "2014-08-01"
           "max_price": "999.99"
@@ -29,7 +29,7 @@ module Agents
     end
 
     def default_options
-      { 'url' =>  'http://stubhub.com/enter-your-event-here' }
+      { 'url' =>  'https://stubhub.com/enter-your-event-here' }
     end
 
     def validate_options
@@ -63,7 +63,7 @@ module Agents
       end
 
       def base_url
-       'http://www.stubhub.com/listingCatalog/select/?q='
+       'https://www.stubhub.com/listingCatalog/select/?q='
       end
 
       def build_url

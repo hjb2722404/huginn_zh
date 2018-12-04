@@ -1,6 +1,9 @@
 module Agents
   class PostAgent < Agent
     include WebRequestConcern
+    include FileHandling
+
+    consumes_file_pointer!
 
     MIME_RE = /\A\w+\/.+\z/
 
@@ -8,38 +11,45 @@ module Agents
     no_bulk_receive!
     default_schedule "never"
 
-    description <<-MD
-      A Post Agent receives events from other agents (or runs periodically), merges those events with the [Liquid-interpolated](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) contents of `payload`, and sends the results as POST (or GET) requests to a specified url.  To skip merging in the incoming event, but still send the interpolated payload, set `no_merge` to `true`.
+    description do
+      <<-MD
+        Post Agent从其他代理接收事件（或定期运行），将这些事件与Liquid内插的有效负载内容合并，并将结果作为POST（或GET）请求发送到指定的url。 要跳过合并传入事件，但仍发送插值有效负载，请将no_merge设置为true。
 
-      The `post_url` field must specify where you would like to send requests. Please include the URI scheme (`http` or `https`).
+        post_url字段必须指定您要发送请求的位置。 请包含URI方案（http或https）。
 
-      The `method` used can be any of `get`, `post`, `put`, `patch`, and `delete`.
+        使用的方法可以是get，post，put，patch和delete中的任何一个
 
-      By default, non-GETs will be sent with form encoding (`application/x-www-form-urlencoded`).
+        默认情况下，非GET将使用表单编码（application / x-www-form-urlencoded）发送。
 
-      Change `content_type` to `json` to send JSON instead.
+        将content_type更改为json以改为发送JSON
 
-      Change `content_type` to `xml` to send XML, where the name of the root element may be specified using `xml_root`, defaulting to `post`.
+        将content_type更改为xml以发送XML，其中可以使用xml_root指定根元素的名称，默认为post。
 
-      When `content_type` contains a [MIME](https://en.wikipedia.org/wiki/Media_type) type, and `payload` is a string, its interpolated value will be sent as a string in the HTTP request's body and the request's `Content-Type` HTTP header will be set to `content_type`. When `payload` is a string `no_merge` has to be set to `true`.
+        当content_type包含MIME类型，并且payload是一个字符串时，其插值将作为HTTP请求主体中的字符串发送，并且请求的Content-Type HTTP标头将设置为content_type。 当payload是一个字符串时，no_merge必须设置为true
 
-      If `emit_events` is set to `true`, the server response will be emitted as an Event and can be fed to a WebsiteAgent for parsing (using its `data_from_event` and `type` options). No data processing
-      will be attempted by this Agent, so the Event's "body" value will always be raw text.
-      The Event will also have a "headers" hash and a "status" integer value.
-      Set `event_headers_style` to one of the following values to normalize the keys of "headers" for downstream agents' convenience:
+        如果emit_events设置为true，则服务器响应将作为Event发出，并可以提供给WebsiteAgent进行解析（使用其data_from_event和type选项）。 此代理不会尝试任何数据处理，因此Event的“body”值将始终为原始文本。 事件还将具有“标题”哈希值和“状态”整数值。
 
-        * `capitalized` (default) - Header names are capitalized; e.g. "Content-Type"
-        * `downcased` - Header names are downcased; e.g. "content-type"
-        * `snakecased` - Header names are snakecased; e.g. "content_type"
-        * `raw` - Backward compatibility option to leave them unmodified from what the underlying HTTP library returns.
+        如果output_mode设置为merge，则发出的Event将合并到接收到的Event的原始内容中。
 
-      Other Options:
+        将event_headers_style设置为以下值之一，以规范化“标题”的键，以便下游代理方便：
 
-        * `headers` - When present, it should be a hash of headers to send with the request.
-        * `basic_auth` - Specify HTTP basic auth parameters: `"username:password"`, or `["username", "password"]`.
-        * `disable_ssl_verification` - Set to `true` to disable ssl verification.
-        * `user_agent` - A custom User-Agent name (default: "Faraday v#{Faraday::VERSION}").
-    MD
+          * `capitalized` （默认） - 标题名称大写; 例如 “内容类型”
+          * `downcased` - 标题名称是低级的; 例如 “内容类型”
+          * `snakecased` - 标题名称是蛇形的; 例如 “内容类型”
+          * `raw` - 向后兼容性选项，使其不受基础HTTP库返回的修改。
+
+        其他选择：
+
+          * `headers` - 如果存在，它应该是与请求一起发送的标头的散列。
+          * `basic_auth` -  指定HTTP基本身份验证参数：“username：password”或[“username”，“password”]。
+          * `disable_ssl_verification` - 设置为true以禁用ssl验证。
+          * `user_agent` -自定义User-Agent名称（默认值：“Faraday v0.12.1”）
+
+        #{receiving_file_handling_agent_description}
+
+        当接收到file_pointer时，将使用多部分编码（multipart / form-data）发送请求，并忽略content_type。 upload_key可用于指定文件将在其中发送的参数，默认为file
+      MD
+    end
 
     event_description <<-MD
       Events look like this:
@@ -51,6 +61,8 @@ module Agents
           },
           "body": "<html>Some data...</html>"
         }
+
+      Original event contents will be merged when `output_mode` is set to `merge`.
     MD
 
     def default_options
@@ -65,12 +77,19 @@ module Agents
         },
         'headers' => {},
         'emit_events' => 'false',
-        'no_merge' => 'false'
+        'no_merge' => 'false',
+        'output_mode' => 'clean'
       }
     end
 
     def working?
-      last_receive_at && last_receive_at > interpolated['expected_receive_period_in_days'].to_i.days.ago && !recent_error_logs?
+      return false if recent_error_logs?
+      
+      if interpolated['expected_receive_period_in_days'].present?
+        return false unless last_receive_at && last_receive_at > interpolated['expected_receive_period_in_days'].to_i.days.ago
+      end
+
+      true
     end
 
     def method
@@ -78,21 +97,26 @@ module Agents
     end
 
     def validate_options
-      unless options['post_url'].present? && options['expected_receive_period_in_days'].present?
-        errors.add(:base, "post_url and expected_receive_period_in_days are required fields")
+      unless options['post_url'].present?
+        errors.add(:base, "post_url is a required field")
       end
 
-      if options['payload'].present? && %w[get delete].include?(method) && !options['payload'].is_a?(Hash)
-        errors.add(:base, "if provided, payload must be a hash")
+      if options['payload'].present? && %w[get delete].include?(method) && !(options['payload'].is_a?(Hash) || options['payload'].is_a?(Array))
+        errors.add(:base, "if provided, payload must be a hash or an array")
       end
 
       if options['payload'].present? && %w[post put patch].include?(method)
-        if !options['payload'].is_a?(Hash) && options['content_type'] !~ MIME_RE
-          errors.add(:base, "if provided, payload must be a hash")
+        if !(options['payload'].is_a?(Hash) || options['payload'].is_a?(Array)) && options['content_type'] !~ MIME_RE
+          errors.add(:base, "if provided, payload must be a hash or an array")
         end
-        if options['content_type'] =~ MIME_RE && options['payload'].is_a?(String) && boolify(options['no_merge']) != true
-          errors.add(:base, "when the payload is a string, `no_merge` has to be set to `true`")
-        end
+      end
+
+      if options['content_type'] =~ MIME_RE && options['payload'].is_a?(String) && boolify(options['no_merge']) != true
+        errors.add(:base, "when the payload is a string, `no_merge` has to be set to `true`")
+      end
+
+      if options['content_type'] == 'form' && options['payload'].present? && options['payload'].is_a?(Array)
+        errors.add(:base, "when content_type is a form, if provided, payload must be a hash")
       end
 
       if options.has_key?('emit_events') && boolify(options['emit_events']).nil?
@@ -113,6 +137,10 @@ module Agents
         errors.add(:base, "if provided, no_merge must be 'true' or 'false'")
       end
 
+      if options['output_mode'].present? && !options['output_mode'].to_s.include?('{') && !%[clean merge].include?(options['output_mode'].to_s)
+        errors.add(:base, "if provided, output_mode must be 'clean' or 'merge'")
+      end
+
       unless headers.is_a?(Hash)
         errors.add(:base, "if provided, headers must be a hash")
       end
@@ -122,17 +150,19 @@ module Agents
 
     def receive(incoming_events)
       incoming_events.each do |event|
-        outgoing = interpolated(event)['payload'].presence || {}
-        if boolify(interpolated['no_merge'])
-          handle outgoing, event.payload
-        else
-          handle outgoing.merge(event.payload), event.payload
+        interpolate_with(event) do
+          outgoing = interpolated['payload'].presence || {}
+          if boolify(interpolated['no_merge'])
+            handle outgoing, event, headers(interpolated[:headers])
+          else
+            handle outgoing.merge(event.payload), event, headers(interpolated[:headers])
+          end
         end
       end
     end
 
     def check
-      handle interpolated['payload'].presence || {}
+      handle interpolated['payload'].presence || {}, headers
     end
 
     private
@@ -160,9 +190,8 @@ module Agents
       }
     end
 
-    def handle(data, payload = {})
-      url = interpolated(payload)[:post_url]
-      headers = headers()
+    def handle(data, event = Event.new, headers)
+      url = interpolated(event.payload)[:post_url]
 
       case method
       when 'get', 'delete'
@@ -170,13 +199,21 @@ module Agents
       when 'post', 'put', 'patch'
         params = nil
 
-        case (content_type = interpolated(payload)['content_type'])
+        content_type =
+          if has_file_pointer?(event)
+            data[interpolated(event.payload)['upload_key'].presence || 'file'] = get_upload_io(event)
+            nil
+          else
+            interpolated(event.payload)['content_type']
+          end
+
+        case content_type
         when 'json'
           headers['Content-Type'] = 'application/json; charset=utf-8'
           body = data.to_json
         when 'xml'
           headers['Content-Type'] = 'text/xml; charset=utf-8'
-          body = data.to_xml(root: (interpolated(payload)[:xml_root] || 'post'))
+          body = data.to_xml(root: (interpolated(event.payload)[:xml_root] || 'post'))
         when MIME_RE
           headers['Content-Type'] = content_type
           body = data.to_s
@@ -192,11 +229,12 @@ module Agents
       }
 
       if boolify(interpolated['emit_events'])
-        create_event payload: {
+        new_event = interpolated['output_mode'].to_s == 'merge' ? event.payload.dup : {}
+        create_event payload: new_event.merge(
           body: response.body,
           headers: normalize_response_headers(response.headers),
           status: response.status
-        }
+        )
       end
     end
   end

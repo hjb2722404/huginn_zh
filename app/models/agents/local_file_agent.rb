@@ -14,29 +14,27 @@ module Agents
 
     description do
       <<-MD
-        The LocalFileAgent can watch a file/directory for changes or emit an event for every file in that directory. When receiving an event it writes the received data into a file.
+        LocalFileAgent可以监视文件/目录以进行更改，也可以为该目录中的每个文件发出事件。 收到事件时，它会将接收的数据写入文件。
 
-        `mode` determines if the agent is emitting events for (changed) files or writing received event data to disk.
+        `mode`  确定代理是否正在为（已更改的）文件发送事件或将接收的事件数据写入磁盘。
 
-        ### Reading
+        ### 读
 
-        When `watch` is set to `true` the LocalFileAgent will watch the specified `path` for changes, the schedule is ignored and the file system is watched continuously. An event will be emitted for every detected change.
+        当watch设置为true时，LocalFileAgent将监视指定的更改路径，忽略计划并连续监视文件系统。 每次检测到的更改都会发出一个事件。
 
-        When `watch` is set to `false` the agent will emit an event for every file in the directory on each scheduled run.
+        当watch设置为false时，代理将为每个计划的运行中的目录中的每个文件发出一个事件。
 
         #{emitting_file_handling_agent_description}
 
-        ### Writing
+        ### 写
 
-        Every event will be writting into a file at `path`, Liquid interpolation is possible to change the path per event.
+        每个事件都将写入路径中的文件，液体插值可以更改每个事件的路径。 
 
-        When `append` is true the received data will be appended to the file.
+        当append为true时，接收的数据将附加到文件中。
 
-        Use [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) templating in `data` to specify which part of the received event should be written.
+        在数据中使用Liquid模板来指定应写入接收事件的哪个部分。
 
-        *Warning*: This type of Agent can read and write any file the user that runs the Huginn server has access to, and is #{Agents::LocalFileAgent.should_run? ? "**currently enabled**" : "**currently disabled**"}.
-        Only enable this Agent if you trust everyone using your Huginn installation.
-        You can enable this Agent in your .env file by setting `ENABLE_INSECURE_AGENTS` to `true`.
+        **警告**：此类型的代理可以读取和写入运行Huginn服务器的用户可以访问的任何文件，并且当前已禁用。 如果您信任所有使用Huginn安装的人，则仅启用此代理。 您可以通过将ENABLE_INSECURE_AGENTS设置为true来在.env文件中启用此代理。
       MD
     end
 

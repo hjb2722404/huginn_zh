@@ -1,3 +1,4 @@
+require 'base64'
 require 'delegate'
 require 'net/imap'
 require 'mail'
@@ -11,58 +12,61 @@ module Agents
     default_schedule "every_30m"
 
     description <<-MD
-      The Imap Folder Agent checks an IMAP server in specified folders and creates Events based on new mails found since the last run. In the first visit to a folder, this agent only checks for the initial status and does not create events.
+      Imap文件夹代理检查指定文件夹中的IMAP服务器，并根据自上次运行后找到的新邮件创建事件。 在第一次访问文件夹时，此代理仅检查初始状态，但不创建事件。
 
-      Specify an IMAP server to connect with `host`, and set `ssl` to true if the server supports IMAP over SSL.  Specify `port` if you need to connect to a port other than standard (143 or 993 depending on the `ssl` value).
+      指定要与主机连接的IMAP服务器，如果服务器支持基于SSL的IMAP，则将ssl设置为true。 如果需要连接到标准以外的端口（143或993，具体取决于ssl值），请指定端口。
 
-      Specify login credentials in `username` and `password`.
+      在用户名和密码中指定登录凭据
 
-      List the names of folders to check in `folders`.
+      列出要在文件夹中签入的文件夹的名称。
 
-      To narrow mails by conditions, build a `conditions` hash with the following keys:
+      要按条件缩小邮件，请使用以下键构建条件哈希：
 
       - `subject`
       - `body`
-          Specify a regular expression to match against the decoded subject/body of each mail.
+          指定正则表达式以匹配每个邮件的已解码主题/正文
 
-          Use the `(?i)` directive for case-insensitive search.  For example, a pattern `(?i)alert` will match "alert", "Alert"or "ALERT".  You can also make only a part of a pattern to work case-insensitively: `Re: (?i:alert)` will match either "Re: Alert" or "Re: alert", but not "RE: alert".
+          使用（？i）指令进行不区分大小写的搜索。 例如，模式（？i）警报将匹配“警报”，“警报”或“警报”。 您还可以仅使模式的一部分不区分大小写：Re：（？i：alert）将匹配“Re：Alert”或“Re：alert”，但不匹配“RE：alert”。
 
-          When a mail has multiple non-attachment text parts, they are prioritized according to the `mime_types` option (which see below) and the first part that matches a "body" pattern, if specified, will be chosen as the "body" value in a created event.
+          当邮件具有多个非附件文本部分时，根据mime_types选项（见下文）对它们进行优先级排序，并且匹配“body”模式的第一部分（如果指定）将被选为a中的“body”值。 创造了事件。
 
-          Named captures will appear in the "matches" hash in a created event.
+          命名捕获将出现在已创建事件的“匹配”哈希中。
 
       - `from`, `to`, `cc`
-          Specify a shell glob pattern string that is matched against mail addresses extracted from the corresponding header values of each mail.
+          指定一个shell glob模式字符串，该字符串与从每个邮件的相应标头值中提取的邮件地址匹配。
 
-          Patterns match addresses in case insensitive manner.
+          模式以不区分大小写的方式匹配地址
 
-          Multiple pattern strings can be specified in an array, in which case a mail is selected if any of the patterns matches. (i.e. patterns are OR'd)
+          可以在数组中指定多个模式字符串，在这种情况下，如果任何模式匹配，则选择邮件。 （即模式是OR'd）
 
       - `mime_types`
-          Specify an array of MIME types to tell which non-attachment part of a mail among its text/* parts should be used as mail body.  The default value is `['text/plain', 'text/enriched', 'text/html']`.
+          指定一个MIME类型数组，以告知邮件中哪个非附件部分的文本/ *部分应该用作邮件正文。 默认值为['text / plain'，'text / enriched'，'text / html']。
 
       - `is_unread`
-          Setting this to true or false means only mails that is marked as unread or read respectively, are selected.
+          将此设置为true或false表示仅选择分别标记为未读或已读的邮件。
 
-          If this key is unspecified or set to null, it is ignored.
+          如果未指定此键或将其设置为null，则忽略该键。
 
       - `has_attachment`
       
-          Setting this to true or false means only mails that does or does not have an attachment are selected.
+          将此设置为true或false表示仅选择具有或不具有附件的邮件。 
 
-          If this key is unspecified or set to null, it is ignored.
+          如果未指定此键或将其设置为null，则忽略该键.
 
-      Set `mark_as_read` to true to mark found mails as read.
+      将mark_as_read设置为true以将找到的邮件标记为已读
 
-      Each agent instance memorizes the highest UID of mails that are found in the last run for each watched folder, so even if you change a set of conditions so that it matches mails that are missed previously, or if you alter the flag status of already found mails, they will not show up as new events.
+      将include_raw_mail设置为true可将raw_mail值添加到每个已创建的事件，该事件包含IM644标准中定义的“RFC822”格式的Base64编码blob。 请注意，虽然Base64编码的结果将以LF终止，但由于电子邮件协议和格式的性质，其原始内容通常将以CRLF终止。 原始邮件blob的主要用例是使用openssl enc -d -base64 |等命令传递给Shell Command Agent。 tr -d''| procmail -Yf-。
 
-      Also, in order to avoid duplicated notification it keeps a list of Message-Id's of 100 most recent mails, so if multiple mails of the same Message-Id are found, you will only see one event out of them.
+      每个代理程序实例都会记住在每个监视文件夹的上次运行中找到的邮件的最高UID，因此即使您更改了一组条件以使其与先前错过的邮件匹配，或者您更改了已找到的标记状态 邮件，它们不会显示为新事件。
+
+      此外，为了避免重复通知，它会保留100个最近邮件的Message-Id列表，因此如果找到多个相同Message-Id的邮件，您将只看到其中一个事件。
     MD
 
     event_description <<-MD
       Events look like this:
 
           {
+            "message_id": "...(Message-Id without angle brackets)...",
             "folder": "INBOX",
             "subject": "...",
             "from": "Nanashi <nanashi.gombeh@example.jp>",
@@ -74,6 +78,8 @@ module Agents
             "matches": {
             }
           }
+
+      Additionally, "raw_mail" will be included if the `include_raw_mail` option is set.
     MD
 
     IDCACHE_SIZE = 100
@@ -112,7 +118,7 @@ module Agents
         errors.add(:base, "port must be a positive integer") unless is_positive_integer?(options['port'])
       end
 
-      %w[ssl mark_as_read].each { |key|
+      %w[ssl mark_as_read include_raw_mail].each { |key|
         if options[key].present?
           if boolify(options[key]).nil?
             errors.add(:base, '%s must be a boolean value' % key)
@@ -264,7 +270,8 @@ module Agents
 
           log 'Emitting an event for mail: %s' % message_id
 
-          create_event :payload => {
+          payload = {
+            'message_id' => message_id,
             'folder' => mail.folder,
             'subject' => mail.scrubbed(:subject),
             'from' => mail.from_addrs.first,
@@ -276,6 +283,12 @@ module Agents
             'matches' => matches,
             'has_attachment' => mail.has_attachment?,
           }
+
+          if boolify(interpolated['include_raw_mail'])
+            payload['raw_mail'] = Base64.encode64(mail.raw_mail)
+          end
+
+          create_event payload: payload
 
           notified << mail.message_id if mail.message_id
         end
@@ -307,7 +320,7 @@ module Agents
         interpolated['folders'].each { |folder|
           log "Selecting the folder: %s" % folder
 
-          imap.select(folder)
+          imap.select(Net::IMAP.encode_utf7(folder))
           uidvalidity = imap.uidvalidity
 
           lastseenuid = lastseen[uidvalidity]
@@ -391,12 +404,6 @@ module Agents
     end
 
     private
-
-    def is_positive_integer?(value)
-      Integer(value) >= 0
-    rescue
-      false
-    end
 
     def glob_match?(pattern, value)
       File.fnmatch?(pattern, value, FNM_FLAGS)
@@ -503,13 +510,17 @@ module Agents
           end
       end
 
-      def fetch
-        @parsed ||=
+      def raw_mail
+        @raw_mail ||=
           if data = @client.uid_fetch(@uid, 'BODY.PEEK[]').first
-            Mail.read_from_string(data.attr['BODY[]'])
+            data.attr['BODY[]']
           else
-            Mail.read_from_string('')
+            ''
           end
+      end
+
+      def fetch
+        @parsed ||= Mail.read_from_string(raw_mail)
       end
 
       def body_parts(mime_types = DEFAULT_BODY_MIME_TYPES)

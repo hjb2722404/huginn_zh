@@ -47,10 +47,30 @@ module TwitterConcern
   module ClassMethods
     def twitter_dependencies_missing
       if ENV['TWITTER_OAUTH_KEY'].blank? || ENV['TWITTER_OAUTH_SECRET'].blank?
-        "## Set TWITTER_OAUTH_KEY and TWITTER_OAUTH_SECRET in your environment to use Twitter Agents."
+        "## 在您的环境中设置TWITTER_OAUTH_KEY和TWITTER_OAUTH_SECRET以使用Twitter代理."
       elsif !defined?(Twitter) || !Devise.omniauth_providers.include?(:twitter)
-        "## Include the `twitter`, `omniauth-twitter`, and `cantino-twitter-stream` gems in your Gemfile to use Twitter Agents."
+        "## 在你的Gemfile中包含`twitter`，`omniauth-twitter`和`cantino-twitter-stream` gems以使用Twitter代理."
       end
+    end
+  end
+end
+
+class Twitter::Error
+  remove_const :FORBIDDEN_MESSAGES
+
+  FORBIDDEN_MESSAGES = proc do |message|
+    case message
+    when /(?=.*status).*duplicate/i
+      # - "Status is a duplicate."
+      Twitter::Error::DuplicateStatus
+    when /already favorited/i
+      # - "You have already favorited this status."
+      Twitter::Error::AlreadyFavorited
+    when /already retweeted|Share validations failed/i
+      # - "You have already retweeted this Tweet." (Nov 2017-)
+      # - "You have already retweeted this tweet." (?-Nov 2017)
+      # - "sharing is not permissible for this status (Share validations failed)" (-? 2017)
+      Twitter::Error::AlreadyRetweeted
     end
   end
 end

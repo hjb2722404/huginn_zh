@@ -5,31 +5,33 @@ module Agents
     cannot_create_events!
 
     description <<-MD
-      The Commander Agent is triggered by schedule or an incoming event, and commands other agents ("targets") to run, disable, configure, or enable themselves.
+        Commander Agent由时间计划或传入的事件触发，并命令其他代理（“目标”）运行，禁用，配置或启用自身
 
-      # Action types
+      # 操作类型
 
-      Set `action` to one of the action types below:
+      将`action`设置为以下某个操作类型：
 
-      * `run`: Target Agents are run when this agent is triggered.
+      * `run`: 触发此代理时会运行目标代理.
 
-      * `disable`: Target Agents are disabled (if not) when this agent is triggered.
+      * `disable`:  触发此代理时，将禁用目标代理（如果未禁用)
 
-      * `enable`: Target Agents are enabled (if not) when this agent is triggered.
+      * `enable`: 触发此代理时，将启用目标代理（如果未启用）.
 
-      * `configure`: Target Agents have their options updated with the contents of `configure_options`.
+      * `configure`: 目标代理使用`configure_options`的内容更新其选项。
 
-      Here's a tip: you can use Liquid templating to dynamically determine the action type.  For example:
+      这是一个提示：您可以使用 [Liquid](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid)模板动态确定操作类型。 例如:
 
-      - To create a CommanderAgent that receives an event from a WeatherAgent every morning to kick an agent flow that is only useful in a nice weather, try this: `{% if conditions contains 'Sunny' or conditions contains 'Cloudy' %}` `run{% endif %}`
+      - 要创建一个CommanderAgent，每天早上从WeatherAgent接收一个事件，以启动仅在天气晴朗时才有用的代理流程，请尝试以下操作：  `{% if conditions contains 'Sunny' or conditions contains 'Cloudy' %}` `run{% endif %}`
 
-      - Likewise, if you have a scheduled agent flow specially crafted for rainy days, try this: `{% if conditions contains 'Rain' %}enable{% else %}disabled{% endif %}`
+      - 同样，如果您有为雨天特制的预定代理流程，请尝试以下方法： `{% if conditions contains 'Rain' %}enable{% else %}disabled{% endif %}`
 
-      - If you want to update a WeatherAgent based on a UserLocationAgent, you could use `'action': 'configure'` and set 'configure_options' to `{ 'location': '{{_location_.latlng}}' }`.
+      - 如果要基于UserLocationAgent更新WeatherAgent，可以使用'action'：'configure'并将'configure_options'设置为 `{ 'location': '{{_location_.latlng}}' }`.
 
-      # Targets
+      - 在模板中，您可以使用变量目标来引用每个目标代理，它具有以下属性： #{AgentDrop.instance_methods(false).map { |m| "`#{m}`" }.to_sentence}.
 
-      Select Agents that you want to control from this CommanderAgent.
+      # 目标
+
+      从此CommanderAgent中选择要控制的代理.
     MD
 
     def working?

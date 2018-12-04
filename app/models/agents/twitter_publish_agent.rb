@@ -5,15 +5,16 @@ module Agents
     cannot_be_scheduled!
 
     description <<-MD
-      The Twitter Publish Agent publishes tweets from the events it receives.
+      Twitter Publish Agent 从其收到的事件中发布推文.
 
       #{twitter_dependencies_missing if dependencies_missing?}
 
-      To be able to use this Agent you need to authenticate with Twitter in the [Services](/services) section first.
+      为了能够使用此代理，您需要首先在[“服务”](/services)功能中使用Twitter进行身份验证。
 
-      You must also specify a `message` parameter, you can use [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) to format the message.
+      
+      您还必须指定`message`参数，您可以使用 [Liquid](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid) 格式化消息。
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.
+      将`expected_update_period_in_days`设置为您希望在此代理创建的事件之间传递的最长时间。
     MD
 
     def validate_options

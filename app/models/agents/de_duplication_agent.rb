@@ -4,13 +4,13 @@ module Agents
     cannot_be_scheduled!
 
     description <<-MD
-      The De-duplication Agent receives a stream of events and remits the event if it is not a duplicate.
+      De-duplication Agent(重复数据删除代理)接收事件流，如果事件不是重复事件则重新启动事件
 
-      `property` the value that should be used to determine the uniqueness of the event (empty to use the whole payload)
+      `property`  应该用于确定事件唯一性的值（空以使用整个有效负载）
 
-      `lookback` amount of past Events to compare the value to (0 for unlimited)
+      `lookback` 过去事件的数量来比较值（0表示无限制）
 
-      `expected_update_period_in_days` is used to determine if the Agent is working.
+      `expected_update_period_in_days` 用于确定代理是否正常工作。
     MD
 
     event_description <<-MD

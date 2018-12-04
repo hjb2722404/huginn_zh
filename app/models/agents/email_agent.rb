@@ -7,27 +7,21 @@ module Agents
     no_bulk_receive!
 
     description <<-MD
-      The Email Agent sends any events it receives via email immediately.
+      电子邮件代理会立即发送通过电子邮件收到的任何事件。
 
-      You can specify the email's subject line by providing a `subject` option, which can contain Liquid formatting.  E.g.,
-      you could provide `"Huginn email"` to set a simple subject, or `{{subject}}` to use the `subject` key from the incoming Event.
+      您可以通过提供主题选项来指定电子邮件的主题行，该选项可以包含Liquid格式。 例如，您可以提供“Huginn电子邮件”来设置一个简单的主题，或{{subject}}来使用来自传入事件的主题密钥。
 
-      By default, the email body will contain an optional `headline`, followed by a listing of the Events' keys.
+      默认情况下，电子邮件正文将包含可选标题，后跟事件键的列表。
 
-      You can customize the email body by including the optional `body` param.  Like the `subject`, the `body` can be a simple message
-      or a Liquid template.  You could send only the Event's `some_text` field with a `body` set to `{{ some_text }}`.
-      The body can contain simple HTML and will be sanitized. Note that when using `body`, it will be wrapped with `<html>` and `<body>` tags,
-      so you do not need to add these yourself.
+      您可以通过包含可选的正文参数来自定义电子邮件正文。 与主题一样，正文可以是简单的消息或液体模板。 您只能发送事件的some_text字段，并将正文设置为{{some_text}}。 正文可以包含简单的HTML并将被清理。 请注意，使用body时，它将使用<html>和<body>标记进行包装，因此您无需自己添加它们。
 
-      You can specify one or more `recipients` for the email, or skip the option in order to send the email to your
-      account's default email address.
+      您可以为电子邮件指定一个或多个收件人，也可以跳过该选项以将电子邮件发送到您帐户的默认电子邮件地址。
 
-      You can provide a `from` address for the email, or leave it blank to default to the value of `EMAIL_FROM_ADDRESS` (`#{ENV['EMAIL_FROM_ADDRESS']}`).
+      您可以提供电子邮件的发件人地址，或将其留空以默认为EMAIL_FROM_ADDRESS（from_address@gmail.com）的值。
 
-      You can provide a `content_type` for the email and specify `text/plain` or `text/html` to be sent.
-      If you do not specify `content_type`, then the recipient email server will determine the correct rendering.
+      您可以为电子邮件提供`content_type` ，并指定要发送的text / plain或text / html。 如果未指定content_type，则收件人电子邮件服务器将确定正确的呈现。
 
-      Set `expected_receive_period_in_days` to the maximum amount of time that you'd expect to pass between Events being received by this Agent.
+      将`expected_receive_period_in_days`设置为您希望在此代理接收的事件之间传递的最长时间。
     MD
 
     def default_options

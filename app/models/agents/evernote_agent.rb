@@ -3,32 +3,27 @@ module Agents
     include EvernoteConcern
 
     description <<-MD
-      The Evernote Agent connects with a user's Evernote note store.
+      Evernote代理连接用户的Evernote笔记商店
 
-      Visit [Evernote](https://dev.evernote.com/doc/) to set up an Evernote app and receive an api key and secret.
-      Store these in the Evernote environment variables in the .env file.
-      You will also need to create a [Sandbox](https://sandbox.evernote.com/Registration.action) account to use during development.
+      访问Evernote以设置Evernote应用程序并获得api密钥和密钥。 将它们存储在.env文件中的Evernote环境变量中。 您还需要创建一个[沙盒](https://sandbox.evernote.com/Registration.action)帐户，以便在开发期间使用。
 
-      Next, you'll need to authenticate with Evernote in the [Services](/services) section.
+      接下来，您需要在“服务”部分中使用Evernote进行身份验证
 
-      Options:
+      配置项:
 
-        * `mode` - Two possible values:
+        * `mode` - 两个可能的值：
 
-            - `update` Based on events it receives, the agent will create notes
-                       or update notes with the same `title` and `notebook`
+            - `update` 根据收到的事件，代理将创建具有相同title 和notebook的注释或更新注释
 
-            - `read`   On a schedule, it will generate events containing data for newly
-                       added or updated notes
+            - `read`   按计划，它将生成包含新添加或更新的备注数据的事件
 
-        * `include_xhtml_content` - Set to `true` to include the content in ENML (Evernote Markup Language) of the note
+        * `include_xhtml_content` - 设置为true以包含注释的ENML（Evernote标记语言）中的内容
 
         * `note`
 
-          - When `mode` is `update` the parameters of `note` are the attributes of the note to be added/edited.
-            To edit a note, both `title` and `notebook` must be set.
+          - 当mode为update时，note的参数是要添加/编辑的音符的属性。 要编辑注释，必须同时设置title 和notebook 。
 
-            For example, to add the tags 'comic' and 'CS' to a note titled 'xkcd Survey' in the notebook 'xkcd', use:
+              例如，要将标签“漫画”和“CS”添加到笔记本“xkcd”中标题为“xkcd Survey”的注释中，请使用：
 
                 "notes": {
                   "title": "xkcd Survey",
@@ -37,13 +32,11 @@ module Agents
                   "tagNames": "comic, CS"
                 }
 
-            If a note with the above title and notebook did note exist already, one would be created.
+              如果已经存在具有上述标题和笔记本的注释，则会创建一个注释。
 
-          - When `mode` is `read` the values are search parameters.
-            Note: The `content` parameter is not used for searching. Setting `title` only filters
-            notes whose titles contain `title` as a substring, not as the exact title.
+          - 当mode为read时，值为搜索参数。 注意：content参数不用于搜索。 设置标题仅过滤标题包含标题作为子字符串的注释，而不是精确标题。
 
-            For example, to find all notes with tag 'CS' in the notebook 'xkcd', use:
+            例如，要在笔记本“xkcd”中查找标记为“CS”的所有笔记，请使用：
 
                 "notes": {
                   "title": "",

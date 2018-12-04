@@ -2,14 +2,16 @@ module Agents
   class BasecampAgent < Agent
     include FormConfigurable
     include Oauthable
+    include WebRequestConcern
     valid_oauth_providers :'37signals'
 
     cannot_receive_events!
 
     description <<-MD
-      The Basecamp Agent checks a Basecamp project for new Events
+    Basecamp Agent检查Basecamp项目是否有新事件
 
-      To be able to use this Agent you need to authenticate with 37signals in the [Services](/services) section first.
+      为了能够使用此代理，您需要首先在[“服务”](/services)部分中使用37signals进行身份验证。
+
     MD
 
     event_description <<-MD
@@ -87,7 +89,7 @@ module Agents
     end
 
     def request_options
-      {:headers => {"User-Agent" => "Huginn (https://github.com/cantino/huginn)", "Authorization" => "Bearer \"#{service.token}\""}}
+      {headers: {"User-Agent" => user_agent, "Authorization" => "Bearer \"#{service.token}\""}}
     end
 
     def query_parameters

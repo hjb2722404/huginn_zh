@@ -3,16 +3,13 @@ module Agents
     default_schedule "every_12h"
 
     description <<-MD
-      The DelayAgent stores received Events and emits copies of them on a schedule. Use this as a buffer or queue of Events.
+       DelayAgent 存储收到的事件并按计划发出它们的副本。 将其用作事件的缓冲区或队列。
 
-      `max_events` should be set to the maximum number of events that you'd like to hold in the buffer. When this number is
-      reached, new events will either be ignored, or will displace the oldest event already in the buffer, depending on
-      whether you set `keep` to `newest` or `oldest`.
+      `max_events` 应设置为您希望在缓冲区中保留的最大事件数。 达到此数字时，新事件将被忽略，或者将替换缓冲区中已有的最早事件，具体取决于您是将keep设置为newest 还是oldest。
 
-      `expected_receive_period_in_days` is used to determine if the Agent is working. Set it to the maximum number of days
-      that you anticipate passing without this Agent receiving an incoming Event.
+      `expected_receive_period_in_days`  用于确定代理是否正常工作。 将其设置为您预期在没有此代理接收传入事件的情况下通过的最大天数。
 
-      `max_emitted_events` is used to limit the number of the maximum events which should be created. If you omit this DelayAgent will create events for every event stored in the memory.
+      `max_emitted_events`  用于限制应创建的最大事件的数量。 如果省略此DelayAgent，将为存储在内存中的每个事件创建事件。
     MD
 
     def default_options

@@ -2,6 +2,7 @@ module Agents
   class WunderlistAgent < Agent
     include FormConfigurable
     include Oauthable
+    include WebRequestConcern
     valid_oauth_providers :wunderlist
 
     cannot_be_scheduled!
@@ -10,11 +11,12 @@ module Agents
     gem_dependency_check { Devise.omniauth_providers.include?(:wunderlist) }
 
     description <<-MD
-      The WunderlistAgent creates new Wunderlist tasks based on the incoming event.
 
-      #{'## Include the `omniauth-wunderlist` gem in your `Gemfile` and set `WUNDERLIST_OAUTH_KEY` and `WUNDERLIST_OAUTH_SECRET` in your environment to use this Agent' if dependencies_missing?}
+      WunderlistAgent根据传入的事件创建新的Wunderlist(奇妙清单)任务。
 
-      To be able to use this Agent you need to authenticate with Wunderlist in the [Services](/services) section first.
+      #{'## 在Gemfile中包含omniauth-wunderlist gem，并在您的环境中设置WUNDERLIST_OAUTH_KEY和WUNDERLIST_OAUTH_SECRET以使用此代理' if dependencies_missing?}
+
+      为了能够使用此代理，您需要先在“服务”部分中使用Wunderlist进行身份验证。
     MD
 
     def default_options
@@ -72,7 +74,7 @@ module Agents
 
     def request_options
       {:headers => {'Content-Type' => 'application/json',
-                    'User-Agent' => 'Huginn (https://github.com/cantino/huginn)',
+                    'User-Agent' => user_agent,
                     'X-Access-Token' => service.token,
                     'X-Client-ID' => ENV["WUNDERLIST_OAUTH_KEY"] }}
     end

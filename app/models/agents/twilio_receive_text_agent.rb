@@ -6,28 +6,29 @@ module Agents
     gem_dependency_check { defined?(Twilio) }
 
     description do <<-MD
-      The Twilio Receive Text Agent receives text messages from Twilio and emits them as events.
+      Twilio Receive Text Agent 从Twilio接收文本消息并将其作为事件发出。
+
+      (Twilio是一个做成开放插件的电话跟踪服务)。
 
       #{'## Include `twilio-ruby` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      In order to create events with this agent, configure Twilio to send POST requests to:
+      要使用此代理创建事件，请配置Twilio以将POST请求发送到：
 
       ```
       #{post_url}
       ```
 
-      #{'The placeholder symbols above will be replaced by their values once the agent is saved.' unless id}
+      #{'保存代理后，上面的占位符符号将替换为其值。' unless id}
 
-      Options:
+      配置项说明:
 
-        * `server_url` must be set to the URL of your
-        Huginn installation (probably "https://#{ENV['DOMAIN']}"), which must be web-accessible.  Be sure to set http/https correctly.
+        *  `server_url`必须设置为您的Huginn安装的URL（可能是“https：// localhost：3000”），该URL必须可通过Web访问。 务必正确设置http / https。
 
-        * `account_sid` and `auth_token` are your Twilio account credentials. `auth_token` must be the primary auth token for your Twilio accout.
+        *  `account_sid`和`auth_token`是您的Twilio帐户凭据。 `auth_token`必须是Twilio accout的主要身份验证令牌。
 
-        * If `reply_text` is set, it's contents will be sent back as a confirmation text.
+        *  如果设置了reply_text，它的内容将作为确认文本发回。
 
-        * `expected_receive_period_in_days` - How often you expect to receive events this way. Used to determine if the agent is working.
+        * `expected_receive_period_in_days` - 您希望以这种方式接收事件的频率。 用于确定代理是否正常工作。
       MD
     end
 
@@ -35,7 +36,7 @@ module Agents
       {
         'account_sid' => 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         'auth_token' => 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-        'server_url'    => "https://#{ENV['DOMAIN'].presence || example.com}",
+        'server_url'    => "https://#{ENV['DOMAIN'].presence || 'example.com'}",
         'reply_text'    => '',
         "expected_receive_period_in_days" => 1
       }
@@ -63,7 +64,7 @@ module Agents
       params = request.params.except(:action, :controller, :agent_id, :user_id, :format)
       method = request.method_symbol.to_s
       headers = request.headers
-      
+
       # check the last url param: 'secret'
       secret = params.delete('secret')
       return ["Not Authorized", 401] unless secret == "sms-endpoint"

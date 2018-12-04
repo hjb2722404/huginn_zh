@@ -1,0 +1,60 @@
+<div class='container'>
+  <div class='row'>
+    <div class='col-md-8 col-md-offset-2'>
+      <div class='well'>
+
+        <h2>注册</h2>
+
+        <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: 'form-horizontal' }) do |f| %>
+          <%= devise_error_messages! %>
+          <% if ENV['ON_HEROKU'] && User.count.zero? %>
+          <div class="heroku-instructions">
+            <% app_name = request.host[/\A[^.]+/] %>
+            <p>如果您是此应用程序的所有者，请执行以下步骤以完成设置:</p>
+
+            <ul>
+              <li>阅读 <a href="https://github.com/cantino/huginn/wiki/Run-Huginn-for-free-on-Heroku" target="_target">这份文档</a> 注意，如果你打算免费 <a href="https://id.heroku.com/" target="_target">在Heroku中</a>试用Huginn.</li>
+
+              <li>安装 <a href="https://toolbelt.heroku.com/" target="_target">Heroku Toolbelt</a> 并且运行 <kbd>heroku login</kbd>, 如果您还没有准备好.</li>
+
+              <li>运行以下命令:<br />
+                <%= content_tag :pre do -%>
+git clone https://github.com/cantino/huginn.git <%= content_tag :var, app_name %>
+cd <%= content_tag :var, app_name %>
+heroku git:remote -a <%= content_tag :var, app_name %>
+cp .env.example .env
+gem install bundler
+bundle
+bin/setup_heroku
+<%- end %>
+
+              <li>此命令将为您创建管理员帐户.</li>
+            </ul>
+          </div>
+          <% end %>
+
+          <% if User.using_invitation_code? %>
+            <div class="form-group">
+              <%= f.label :邀请码, class: 'col-md-4 control-label' %>
+              <div class="col-md-6">
+                <%= f.text_field :invitation_code, class: 'form-control' %>
+                <span class="help-inline">我们尚未向公众开放。 如果您有邀请码，请在此处输入.</span>
+              </div>
+            </div>
+          <% end %>
+
+          <%= render partial: 'common_registration_fields', locals: { f: f } %>
+
+          <div class="form-group">
+            <div class="col-md-offset-4 col-md-10">
+              <%= f.submit "注册", class: "btn btn-primary" %>
+            </div>
+          </div>
+
+        <% end %>
+
+        <%= render "devise/shared/links" %>
+      </div>
+    </div>
+  </div>
+</div>

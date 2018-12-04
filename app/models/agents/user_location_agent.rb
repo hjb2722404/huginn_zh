@@ -7,13 +7,15 @@ module Agents
     gem_dependency_check { defined?(Haversine) }
 
     description do <<-MD
-      The User Location Agent creates events based on WebHook POSTS that contain a `latitude` and `longitude`.  You can use the [POSTLocation](https://github.com/cantino/post_location) or [PostGPS](https://github.com/chriseidhof/PostGPS) iOS app to post your location to `https://#{ENV['DOMAIN']}/users/#{user.id}/update_location/:secret` where `:secret` is specified in your options.
+      用户位置代理根据包含纬度和经度的WebHook POSTS创建事件。 您可以使用POSTLocation或PostGPS iOS应用程序将您的位置发布到https：// localhost：3000 / users / 1 / update_location /：secret其中：您的选项中指定了secret。
 
       #{'## Include `haversine` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      If you want to only keep more precise locations, set `max_accuracy` to the upper bound, in meters. The default name for this field is `accuracy`, but you can change this by setting a value for `accuracy_field`.
+      如果您只想保留更精确的位置，请将max_accuracy设置为上限，以米为单位。 此字段的默认名称是准确性，但您可以通过设置accuracy_field的值来更改此值
 
-      If you want to require a certain distance traveled, set `min_distance` to the minimum distance, in meters. Note that GPS readings and the measurement itself aren't exact, so don't rely on this for precision filtering.
+      如果您想要行驶一定距离，请将min_distance设置为最小距离（以米为单位）。 请注意，GPS读数和测量本身并不精确，因此不要依赖于此进行精确过滤。
+
+      要在地图上查看位置，请将api_key设置为您的Google Maps JavaScript API密钥。
     MD
     end
 
@@ -42,6 +44,7 @@ module Agents
         'secret' => SecureRandom.hex(7),
         'max_accuracy' => '',
         'min_distance' => '',
+        'api_key' => '',
       }
     end
 

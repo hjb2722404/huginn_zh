@@ -10,19 +10,19 @@ module Agents
     gem_dependency_check { defined?(Slack) }
 
     description <<-MD
-      The Slack Agent lets you receive events and send notifications to [Slack](https://slack.com/).
+      Slack Agent允许您接收事件并向[Slack](https://slack.com/)发送通知 .
 
       #{'## Include `slack-notifier` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      To get started, you will first need to configure an incoming webhook.
+      首先，您将首先需要配置传入的webhook.
 
-      - Go to `https://my.slack.com/services/new/incoming-webhook`, choose a default channel and add the integration.
+      - 转到https://my.slack.com/services/new/incoming-webhook，选择默认频道并添加集成。
 
-      Your webhook URL will look like: `https://hooks.slack.com/services/some/random/characters`
+      您的webhook网址将如下所示: `https://hooks.slack.com/services/some/random/characters`
 
-      Once the webhook has been configured, it can be used to post to other channels or direct to team members. To send a private message to team member, use their @username as the channel. Messages can be formatted using [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid).
+      配置webhook后，可以将其用于发布到其他渠道或直接发送给团队成员。 要向团队成员发送私人消息，请使用他们的@username作为频道。 可以使用[Liquid](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid)格式化消息.
 
-      Finally, you can set a custom icon for this webhook in `icon`, either as [emoji](http://www.emoji-cheat-sheet.com) or an URL to an image. Leaving this field blank will use the default icon for a webhook.
+      最后，您可以在图标中为此webhook设置自定义图标，可以是[emoji](http://www.emoji-cheat-sheet.com) ，也可以是图像的URL。 将此字段留空将使用webhook的默认图标。
     MD
 
     def default_options

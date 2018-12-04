@@ -13,68 +13,67 @@ module Agents
     cattr_reader :second_precision_enabled
 
     description <<-MD
-      The Scheduler Agent periodically takes an action on target Agents according to a user-defined schedule.
+      Scheduler Agent 根据用户定义的计划定期对目标代理执行操作
 
-      # Action types
+      # 操作类型
 
-      Set `action` to one of the action types below:
+      将`action`设置为以下某个操作类型:
 
-      * `run`: Target Agents are run at intervals, except for those disabled.
+      * `run`: 目标代理每隔一段时间运行一次，但禁用的代理除外。
 
-      * `disable`: Target Agents are disabled (if not) at intervals.
+      * `disable`: 目标代理会每隔一段时间禁用（如果不是）。
 
-      * `enable`: Target Agents are enabled (if not) at intervals.
+      * `enable`: 目标代理每隔一段时间启用（如果不是）.
 
-      # Targets
+      #  目标
 
-      Select Agents that you want to run periodically by this SchedulerAgent.
+      选择要由此SchedulerAgent定期运行的代理。
 
-      # Schedule
+      # 计划任务
 
-      Set `schedule` to a schedule specification in the [cron](http://en.wikipedia.org/wiki/Cron) format.
-      For example:
+      将 `schedule` 设置为cron格式的计划规范。 例如：
 
-      * `0 22 * * 1-5`: every day of the week at 22:00 (10pm)
+      * `0 22 * * 1-5`: 每周的每一天22:00（晚上10点）
 
-      * `*/10 8-11 * * *`: every 10 minutes from 8:00 to and not including 12:00
+      * `*/10 8-11 * * *`: 从8:00到每隔10分钟，不包括12:00
 
-      This variant has several extensions as explained below.
+      该变体具有若干扩展，如下所述。
 
-      ## Timezones
+      ## 时区
 
-      You can optionally specify a timezone (default: `#{Time.zone.name}`) after the day-of-week field.
+      您可以选择使用[tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)数据库中的标签在星期几字段后指定时区（默认值：`#{Time.zone.name}`） (default: )  
 
-      * `0 22 * * 1-5 Europe/Paris`: every day of the week when it's 22:00 in Paris
+      * `0 22 * * 1-5 Europe/Paris`: 每周的每一天都是在巴黎时间22:00
 
-      * `0 22 * * 1-5 Etc/GMT+2`: every day of the week when it's 22:00 in GMT+2
+      * `0 22 * * 1-5 Etc/GMT+2`: 在GMT + 2（东二区）的22:00这一周的每一天
 
-      ## Seconds
+      ## 秒
 
-      You can optionally specify seconds before the minute field.
+      您可以选择指定分钟字段前的秒数
 
-      * `*/30 * * * * *`: every 30 seconds
+      * `*/30 * * * * *`: 每30秒一次
 
-      #{"Only multiples of fifteen are allowed as values for the seconds field, i.e. `*/15`, `*/30`, `15,45` etc." unless second_precision_enabled}
+      #{" 只允许十五的倍数作为秒字段的值, 例如. `*/15`, `*/30`, `15,45` etc." unless second_precision_enabled}
 
-      ## Last day of month
+      ## 一个月的最后一天
 
-      `L` signifies "last day of month" in `day-of-month`.
+      L表示每月的“最后一天”。
 
-      * `0 22 L * *`: every month on the last day at 22:00
+      * `0 22 L * *`: 每个月的最后一天的22:00
 
-      ## Weekday names
+      ## 工作日名称
 
-      You can use three letter names instead of numbers in the `weekdays` field.
+      您可以在工作日字段中使用三个字母名称而不是数字。
 
-      * `0 22 * * Sat,Sun`: every Saturday and Sunday, at 22:00
+      * `0 22 * * Sat,Sun`: 每周六和周日，22：00
 
-      ## Nth weekday of the month
+      ## 本月的第N个工作日
 
-      You can specify "nth weekday of the month" like this.
+      您可以像这样指定“当月的第n个工作日”。
 
-      * `0 22 * * Sun#1,Sun#2`: every first and second Sunday of the month, at 22:00
+      * `0 22 * * Sun#1,Sun#2`:  每个月的第一个和第二个星期日，22：00
 
-      * `0 22 * * Sun#L1`: every last Sunday of the month, at 22:00
+      * `0 22 * * Sun#L1`: 每个月的最后一个星期天，22：00
     MD
 
     def default_options

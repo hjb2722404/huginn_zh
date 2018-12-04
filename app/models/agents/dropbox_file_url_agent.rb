@@ -4,19 +4,20 @@ module Agents
 
     cannot_be_scheduled!
     no_bulk_receive!
+    can_dry_run!
 
     description <<-MD
-      The _DropboxFileUrlAgent_ is used to work with Dropbox. It takes a file path (or multiple files paths) and emits events with either [temporary links](https://www.dropbox.com/developers/core/docs#media) or [permanent links](https://www.dropbox.com/developers/core/docs#shares).
+      DropboxFileUrlAgent用于使用Dropbox。 它采用文件路径（或多个文件路径）并使用临时链接或永久链接发出事件。
 
       #{'## Include the `dropbox-api` and `omniauth-dropbox` gems in your `Gemfile` and set `DROPBOX_OAUTH_KEY` and `DROPBOX_OAUTH_SECRET` in your environment to use Dropbox Agents.' if dependencies_missing?}
 
-      The incoming event payload needs to have a `paths` key, with a comma-separated list of files you want the URL for. For example:
+      传入的事件有效负载需要有一个路径密钥，以及您想要URL的逗号分隔的文件列表。 例如：
 
           {
             "paths": "first/path, second/path"
           }
 
-      __TIP__: You can use the _Event Formatting Agent_ to format events before they come in. Here's an example configuration for formatting an event coming out of a _Dropbox Watch Agent_:
+      提示：您可以使用事件格式代理在事件进入之前对事件进行格式化。以下是格式化Dropbox Watch Agent事件的示例配置：
 
           {
             "instructions": {
@@ -26,20 +27,47 @@ module Agents
             "mode": "clean"
           }
 
-      An example of usage would be to watch a specific Dropbox directory (with the _DropboxWatchAgent_) and get the URLs for the added or updated files. You could then, for example, send emails with those links.
+      使用的一个示例是观察特定的Dropbox目录（使用DropboxWatchAgent）并获取添加或更新的文件的URL。 例如，您可以使用这些链接发送电子邮件
 
-      Set `link_type` to `'temporary'` if you want temporary links, or to `'permanent'` for permanent ones.
+      如果你想要临时链接，可以将link_type设置为'temporary'，或者为永久链接设置为'permanent'。
 
     MD
 
-    event_description <<-MD
-      The event payload will contain the following fields:
-
-          {
-            "url": "https://dl.dropboxusercontent.com/1/view/abcdefghijk/example",
-            "expires": "Fri, 16 Sep 2011 01:01:25 +0000"
+    event_description do
+      "Events will looks like this:\n\n    %s" % if options['link_type'] == 'permanent'
+        Utils.pretty_print({
+          url: "https://www.dropbox.com/s/abcde3/example?dl=1",
+          :".tag" => "file",
+          id: "id:abcde3",
+          name: "hi",
+          path_lower: "/huginn/hi",
+          link_permissions:          {
+            resolved_visibility: {:".tag"=>"public"},
+            requested_visibility: {:".tag"=>"public"},
+            can_revoke: true
+          },
+          client_modified: "2017-10-14T18:38:39Z",
+          server_modified: "2017-10-14T18:38:45Z",
+          rev: "31db0615354b",
+          size: 0
+        })
+      else
+        Utils.pretty_print({
+          url: "https://dl.dropboxusercontent.com/apitl/1/somelongurl",
+          metadata: {
+            name: "hi",
+            path_lower: "/huginn/hi",
+            path_display: "/huginn/hi",
+            id: "id:abcde3",
+            client_modified: "2017-10-14T18:38:39Z",
+            server_modified: "2017-10-14T18:38:45Z",
+            rev: "31db0615354b",
+            size: 0,
+            content_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           }
-    MD
+        })
+      end
+    end
 
     def default_options
       {
@@ -61,13 +89,15 @@ module Agents
     private
 
     def temporary_url_for(path)
-      dropbox.find(path).direct_url
+      dropbox.find(path).direct_url.response.tap do |response|
+        response['url'] = response.delete('link')
+      end
     end
 
     def permanent_url_for(path)
-      result = dropbox.find(path).share_url({ :short_url => false })
-      result.url = result.url.gsub('?dl=0','?dl=1') # cause the url to point to the file, instead of to a preview page for the file
-      result
+      dropbox.find(path).share_url.response.tap do |response|
+        response['url'].gsub!('?dl=0','?dl=1')
+      end
     end
 
   end

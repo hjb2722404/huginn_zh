@@ -5,11 +5,15 @@ module Agents
     default_schedule "6am"
 
     description <<-MD
-      The Digest Agent collects any Events sent to it and emits them as a single event.
+      Digest Agent 收集发送给它的任何事件，并将它们作为单个事件发出。
 
-      The resulting Event will have a payload message of `message`. You can use liquid templating in the `message`, have a look at the [Wiki](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) for details.
+      生成的事件将具有消息的有效负载消息。 您可以在消息中使用液体模板，有关详细信息，请查看[Wiki](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid)。
 
-      Set `expected_receive_period_in_days` to the maximum amount of time that you'd expect to pass between Events being received by this Agent.
+      将expected_receive_period_in_days设置为您希望在此代理接收的事件之间传递的最长时间.
+
+      如果retain_events设置为0（默认值），则在发送摘要后将清除所有已接收事件。 将retained_events设置为大于0的值，以便在滚动的基础上保留一定数量的事件，以便在将来的摘要中重新发送
+
+      例如，假设`retain_events`设置为`3`，并且代理已经收到事件`5`,`4`和`3`.当发送摘要时，将保留事件`5`,`4`和`3`以供将来摘要使用。 收到事件`6`后，下一个摘要将包含事件`6`,`5`和`4`。
     MD
 
     event_description <<-MD
@@ -24,12 +28,18 @@ module Agents
     def default_options
       {
           "expected_receive_period_in_days" => "2",
-          "message" => "{{ events | map: 'message' | join: ',' }}"
+          "message" => "{{ events | map: 'message' | join: ',' }}",
+          "retained_events" => "0"
       }
     end
 
     form_configurable :message, type: :text
     form_configurable :expected_receive_period_in_days
+    form_configurable :retained_events
+
+    def validate_options
+      errors.add(:base, 'retained_events must be 0 to 999') unless options['retained_events'].to_i >= 0 && options['retained_events'].to_i < 1000
+    end
 
     def working?
       last_receive_at && last_receive_at > interpolated["expected_receive_period_in_days"].to_i.days.ago && !recent_error_logs?
@@ -40,6 +50,9 @@ module Agents
       incoming_events.each do |event|
         self.memory["queue"] << event.id
       end
+      if interpolated["retained_events"].to_i > 0 && memory["queue"].length > interpolated["retained_events"].to_i
+        memory["queue"].shift(memory["queue"].length - interpolated["retained_events"].to_i)
+      end
     end
 
     def check
@@ -48,7 +61,9 @@ module Agents
         payload = { "events" => events.map { |event| event.payload } }
         payload["message"] = interpolated(payload)["message"]
         create_event :payload => payload
-        self.memory["queue"] = []
+        if interpolated["retained_events"].to_i == 0
+          self.memory["queue"] = []
+        end
       end
     end
   end

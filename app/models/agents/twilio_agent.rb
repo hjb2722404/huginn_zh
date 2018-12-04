@@ -9,18 +9,17 @@ module Agents
     gem_dependency_check { defined?(Twilio) }
 
     description <<-MD
-      The Twilio Agent receives and collects events and sends them via text message (up to 160 characters) or gives you a call when scheduled.
+      Twilio Agent接收并收集事件并通过短信发送（最多160个字符）或在安排时给您打电话。
 
       #{'## Include `twilio-ruby` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      It is assumed that events have a `message`, `text`, or `sms` key, the value of which is sent as the content of the text message/call. You can use the EventFormattingAgent if your event does not provide these keys.
+      假设事件具有消息，文本或短信密钥，其值作为文本消息/呼叫的内容发送。 如果您的事件未提供这些密钥，则可以使用EventFormattingAgent。
 
-      Set `receiver_cell` to the number to receive text messages/call and `sender_cell` to the number sending them.
+      将receiver_cell设置为接收文本消息/呼叫的号码，将sender_cell设置为发送它们的号码。
 
-      `expected_receive_period_in_days` is maximum number of days that you would expect to pass between events being received by this agent.
+      `expected_receive_period_in_days`  是您希望在此代理接收的事件之间传递的最大天数。
 
-      If you would like to receive calls, set `receive_call` to `true`. In this case, `server_url` must be set to the URL of your
-      Huginn installation (probably "https://#{ENV['DOMAIN']}"), which must be web-accessible.  Be sure to set http/https correctly.
+      如果您想接听电话，请将receive_call设置为true。 在这种情况下，server_url必须设置为您的Huginn安装的URL（可能是“https：// localhost：3000”），该URL必须可通过Web访问。 务必正确设置http / https。
     MD
 
     def default_options
@@ -44,16 +43,16 @@ module Agents
 
     def receive(incoming_events)
       memory['pending_calls'] ||= {}
-      incoming_events.each do |event|
+      interpolate_with_each(incoming_events) do |event|
         message = (event.payload['message'].presence || event.payload['text'].presence || event.payload['sms'].presence).to_s
         if message.present?
-          if boolify(interpolated(event)['receive_call'])
+          if boolify(interpolated['receive_call'])
             secret = SecureRandom.hex 3
             memory['pending_calls'][secret] = message
             make_call secret
           end
 
-          if boolify(interpolated(event)['receive_text'])
+          if boolify(interpolated['receive_text'])
             message = message.slice 0..160
             send_message message
           end

@@ -11,24 +11,23 @@ module Agents
     end
 
     description <<-MD
-      The Shell Command Agent will execute commands on your local system, returning the output.
+      Shell命令代理将在本地系统上执行命令，并返回输出。
 
-      `command` specifies the command (either a shell command line string or an array of command line arguments) to be executed, and `path` will tell ShellCommandAgent in what directory to run this command.  The content of `stdin` will be fed to the command via the standard input.
+      `command` 指定要执行的命令（shell命令行字符串或命令行参数数组），path将告诉ShellCommandAgent在哪个目录中运行此命令。 stdin的内容将通过标准输入提供给命令。
 
-      `expected_update_period_in_days` is used to determine if the Agent is working.
+      `expected_update_period_in_days`  用于确定代理是否正常工作。
 
-      ShellCommandAgent can also act upon received events. When receiving an event, this Agent's options can interpolate values from the incoming event.
-      For example, your command could be defined as `{{cmd}}`, in which case the event's `cmd` property would be used.
+      ShellCommandAgent也可以根据收到的事件采取行动。 收到事件时，此代理的选项可以插入来自传入事件的值。 例如，您的命令可以定义为{{cmd}}，在这种情况下，将使用事件的cmd属性。
 
-      The resulting event will contain the `command` which was executed, the `path` it was executed under, the `exit_status` of the command, the `errors`, and the actual `output`. ShellCommandAgent will not log an error if the result implies that something went wrong.
+      生成的事件将包含已执行的命令，在其下执行的路径，命令的exit_status，错误和实际输出。 如果结果意味着出错，ShellCommandAgent将不会记录错误。
 
-      If `suppress_on_failure` is set to true, no event is emitted when `exit_status` is not zero.
+      如果unbundle设置为true，则命令在Huginn的bundler上下文之外的干净环境中运行。
 
-      If `suppress_on_empty_output` is set to true, no event is emitted when `output` is empty.
+      如果suppress_on_failure设置为true，则exit_status不为零时不会发出任何事件。
 
-      *Warning*: This type of Agent runs arbitrary commands on your system, #{Agents::ShellCommandAgent.should_run? ? "but is **currently enabled**" : "and is **currently disabled**"}.
-      Only enable this Agent if you trust everyone using your Huginn installation.
-      You can enable this Agent in your .env file by setting `ENABLE_INSECURE_AGENTS` to `true`.
+      如果suppress_on_empty_output设置为true，则输出为空时不会发出任何事件。
+
+      警告：此类型的代理程序在您的系统上运行任意命令，并且当前已禁用。 如果您信任所有使用Huginn安装的人，则仅启用此代理。 您可以通过将ENABLE_INSECURE_AGENTS设置为true来在.env文件中启用此代理。
     MD
 
     event_description <<-MD
@@ -47,6 +46,7 @@ module Agents
       {
           'path' => "/",
           'command' => "pwd",
+          'unbundle' => false,
           'suppress_on_failure' => false,
           'suppress_on_empty_output' => false,
           'expected_update_period_in_days' => 1
@@ -68,7 +68,7 @@ module Agents
         errors.add(:base, "command must be a shell command line string or an array of command line arguments.")
       end
 
-      unless File.directory?(options['path'])
+      unless File.directory?(interpolated['path'])
         errors.add(:base, "#{options['path']} is not a real directory.")
       end
     end
@@ -95,7 +95,7 @@ module Agents
         path = opts['path']
         stdin = opts['stdin']
 
-        result, errors, exit_status = run_command(path, command, stdin)
+        result, errors, exit_status = run_command(path, command, stdin, interpolated.slice(:unbundle).symbolize_keys)
 
         payload = {
           'command' => command,
@@ -115,7 +115,13 @@ module Agents
       end
     end
 
-    def run_command(path, command, stdin)
+    def run_command(path, command, stdin, unbundle: false)
+      if unbundle
+        return Bundler.with_original_env {
+          run_command(path, command, stdin)
+        }
+      end
+
       begin
         rout, wout = IO.pipe
         rerr, werr = IO.pipe

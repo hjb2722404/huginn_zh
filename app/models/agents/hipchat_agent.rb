@@ -9,23 +9,23 @@ module Agents
     gem_dependency_check { defined?(HipChat) }
 
     description <<-MD
-      The Hipchat Agent sends messages to a Hipchat Room
+      Hipchat Agent将消息发送到Hipchat Room
 
       #{'## Include `hipchat` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      To authenticate you need to set the `auth_token`, you can get one at your Hipchat Group Admin page which you can find here:
+      要进行身份验证，您需要设置auth_token，您可以在Hipchat Group Admin页面上找到一个，您可以在此处找到：
 
       `https://`yoursubdomain`.hipchat.com/admin/api`
 
-      Change the `room_name` to the name of the room you want to send notifications to.
+      将room_name更改为要向其发送通知的房间的名称。
 
-      You can provide a `username` and a `message`. If you want to use mentions change `format` to "text" ([details](https://www.hipchat.com/docs/api/method/rooms/message)).
+      您可以提供用户名和消息。 如果要使用提及更改格式为“文本”（详细信息）
 
-      If you want your message to notify the room members change `notify` to "True".
+      如果您希望您的消息通知会议室成员，请将通知更改为“True”。
 
-      Modify the background color of your message via the `color` attribute (one of "yellow", "red", "green", "purple", "gray", or "random")
+      通过颜色属性（“黄色”，“红色”，“绿色”，“紫色”，“灰色”或“随机”之一）修改消息的背景颜色
 
-      Have a look at the [Wiki](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) to learn more about liquid templating.
+      查看Wiki以了解有关liquid模板的更多信息。
     MD
 
     def default_options

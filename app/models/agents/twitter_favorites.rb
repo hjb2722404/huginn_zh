@@ -5,17 +5,17 @@ module Agents
     cannot_receive_events!
 
     description <<-MD
-      The Twitter Favorites List Agent follows the favorites list of a specified Twitter user.
+      Twitter Favorites List Agent 跟踪指定Twitter用户的收藏夹列表.
 
       #{twitter_dependencies_missing if dependencies_missing?}
 
-      To be able to use this Agent you need to authenticate with Twitter in the [Services](/services) section first.
+      为了能够使用此代理，您需要首先在“服务”部分中使用Twitter进行身份验证.
 
-      You must also provide the `username` of the Twitter user, `number` of latest tweets to monitor and `history' as number of tweets that will be held in memory.
+      您还必须提供Twitter用户的用户名，要监控的最新推文的数量和“历史记录”作为将在内存中保存的推文的数量.
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.
+      将expected_update_period_in_days设置为您希望在此代理创建的事件之间传递的最长时间。
       
-      Set `starting_at` to the date/time (eg. `Mon Jun 02 00:38:12 +0000 2014`) you want to start receiving tweets from (default: agent's `created_at`)
+      将starting_at设置为日期/时间（例如，2014年6月2日00:38:12 +0000）你想开始接收推文（默认：代理商的created_at）
     MD
 
     event_description <<-MD
@@ -76,7 +76,7 @@ module Agents
     end
 
     def check
-      opts = {:count => interpolated['number']}
+      opts = {:count => interpolated['number'], tweet_mode: 'extended'}
       tweets = twitter.favorites(interpolated['username'], opts)
       memory[:last_seen] ||= []
 

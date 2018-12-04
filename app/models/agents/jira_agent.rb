@@ -6,19 +6,24 @@ require 'date'
 
 module Agents
   class JiraAgent < Agent
+    include WebRequestConcern
+
     cannot_receive_events!
 
     description <<-MD
-      The Jira Agent subscribes to Jira issue updates.
 
-      - `jira_url` specifies the full URL of the jira installation, including https://
-      - `jql` is an optional Jira Query Language-based filter to limit the flow of events. See [JQL Docs](https://confluence.atlassian.com/display/JIRA/Advanced+Searching) for details. 
-      - `username` and `password` are optional, and may need to be specified if your Jira instance is read-protected
-      - `timeout` is an optional parameter that specifies how long the request processing may take in minutes.
+      Jira Agent订阅了Jira问题更新
 
-      The agent does periodic queries and emits the events containing the updated issues in JSON format.
+      JIRA 是一个缺陷跟踪管理系统，为针对缺陷管理、任务追踪和项目管理的商业性应用软件
 
-      NOTE: upon the first execution, the agent will fetch everything available by the JQL query. So if it's not desirable, limit the `jql` query by date.
+      - `jira_url` 指定jira安装的完整URL，包括https：//
+      - `jql` 是一个可选的基于Jira查询语言的过滤器，用于限制事件流。 有关详细信息，请参阅[JQL文档 JQL Docs](https://confluence.atlassian.com/display/JIRA/Advanced+Searching) 。 
+      - `username` 和 `password` 是可选的，如果您的Jira实例受到读保护，则可能需要指定
+      - `timeout`  是一个可选参数，指定请求处理在几分钟内可能需要多长时间。
+
+      代理执行定期查询并以JSON格式发出包含更新问题的事件。
+
+      注意：首次执行时，代理将获取JQL查询可用的所有内容。 因此，如果不可取，​​请按日期限制jql查询。
     MD
 
     event_description <<-MD
@@ -86,7 +91,7 @@ module Agents
     end
 
     def request_options
-      ropts = {:headers => {"User-Agent" => "Huginn (https://github.com/cantino/huginn)"}}
+      ropts = { headers: {"User-Agent" => user_agent} }
 
       if !interpolated[:username].empty?
         ropts = ropts.merge({:basic_auth => {:username =>interpolated[:username], :password=>interpolated[:password]}})

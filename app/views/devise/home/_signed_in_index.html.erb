@@ -1,0 +1,47 @@
+<div class='container'>
+
+  <div class='row'>
+    <div class='col-md-12'>
+      <div class="page-header">
+        <h2>欢迎使用Huginn!</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class='col-md-6'>
+      <p>
+        您已经创建了 <span class="text-success"><%= pluralize current_user.agents.count, "个代理" %></span>.
+      </p>
+      <p>
+        <%= link_to '查看 <i class="icon-chevron-right"></i>'.html_safe, agents_path, class: "btn btn-primary" %>
+      </p>
+    </div>
+    <div class='col-md-6'>
+      <p>
+        您的助手已经记录下了最近的
+        <span class="text-success"><%= pluralize current_user.events.recent.count, "个事件" %> </span> ，总共记录
+        <span class=""><%= pluralize current_user.events.count, '个事件' %> </span>.
+      </p>
+      <p>
+        <%= link_to '查看 <i class="icon-chevron-right"></i>'.html_safe, events_path, class: "btn btn-primary" %>
+      </p>
+    </div>
+  </div>
+
+  <div class='row' style='min-height: 250px'></div>
+
+  <div class='row'>
+    <div class='col-md-10'>
+      <blockquote>
+        <p>奥丁的肩膀上坐着两只乌鸦，一只名叫Huginn，一只名叫Muninn。这两只乌鸦告诉奥丁他们的所见所闻，毫无遗漏。奥丁在黎明时派出它们，它们飞遍全世界然后再晚餐之前回来汇报，因此，奥丁掌握着许许多多的事件.</p>
+          <small><a href="http://en.wikipedia.org/wiki/Huginn_and_Muninn">Wikipedia</a>, in reference to
+            <em>Gylfaginning</em></small>
+      </blockquote>
+    </div>
+    <div class='col-md-2'>
+      <%= image_tag 'odin.jpg', :class => 'img-responsive img-rounded', :title => "Wägner, Wilhelm. 1882. Nordisch-germanische Götter und Helden. Otto Spamer, Leipzig & Berlin. Page 7." %>
+    </div>
+  </div>
+
+</div>

@@ -15,118 +15,208 @@ module Agents
     UNIQUENESS_FACTOR = 3
 
     description <<-MD
-      The Website Agent scrapes a website, XML document, or JSON feed and creates Events based on the results.
 
-      Specify a `url` and select a `mode` for when to create Events based on the scraped data, either `all`, `on_change`, or `merge` (if fetching based on an Event, see below).
+      网站代理会抓取网站，XML文档或JSON Feed，并根据结果创建事件
 
-      The `url` option can be a single url, or an array of urls (for example, for multiple pages with the exact same structure but different content to scrape).
+      指定一个url并根据已删除的数据（all，on_change或merge）选择何时创建事件的模式（如果基于事件获取，请参见下文）。
 
-      The WebsiteAgent can also scrape based on incoming events.
+      url选项可以是单个url，也可以是url数组（例如，对于具有完全相同结构但不同内容要刮的多个页面）。
 
-      * Set the `url_from_event` option to a Liquid template to generate the url to access based on the Event.  (To fetch the url in the Event's `url` key, for example, set `url_from_event` to `{{ url }}`.)
-      * Alternatively, set `data_from_event` to a Liquid template to use data directly without fetching any URL.  (For example, set it to `{{ html }}` to use HTML contained in the `html` key of the incoming Event.)
-      * If you specify `merge` for the `mode` option, Huginn will retain the old payload and update it with new values.
+      WebsiteAgent还可以根据传入的事件进行搜索。
 
-      # Supported Document Types
+      * 将url_from_event选项设置为Liquid模板，以根据Event生成要访问的URL。 （例如，要获取Event的url键中的url，请将url_from_event设置为{{url}}。）
+      * 或者，将data_from_event设置为Liquid模板以直接使用数据而不提取任何URL。 （例如，将其设置为{{html}}以使用包含在传入事件的html键中的HTML。）
+      * 如果为mode选项指定merge，Huginn将保留旧有效负载并使用新值更新它。
 
-      The `type` value can be `xml`, `html`, `json`, or `text`.
+      # 支持的文档类型
 
-      To tell the Agent how to parse the content, specify `extract` as a hash with keys naming the extractions and values of hashes.
+      类型值可以是xml，html，json或text
 
-      Note that for all of the formats, whatever you extract MUST have the same number of matches for each extractor.  E.g., if you're extracting rows, all extractors must match all rows.  For generating CSS selectors, something like [SelectorGadget](http://selectorgadget.com) may be helpful.
+      要告诉代理如何解析内容，请将extract指定为哈希，并使用键命名哈希的提取和值。
 
-      # Scraping HTML and XML
+      请注意，对于所有格式，无论您提取什么，每个提取器都必须具有相同数量的匹配，除非它重复设置为true。 例如，如果要提取行，则所有提取器必须匹配所有行。 为了生成CSS选择器，像SelectorGadget这样的东西可能会有所帮助。
 
-      When parsing HTML or XML, these sub-hashes specify how each extraction should be done.  The Agent first selects a node set from the document for each extraction key by evaluating either a CSS selector in `css` or an XPath expression in `xpath`.  It then evaluates an XPath expression in `value` (default: `.`) on each node in the node set, converting the result into a string.  Here's an example:
+      对于隐藏设置为true的提取器，它们将从代理创建的事件的有效负载中排除，但可以在下面解释的模板选项中使用和插值。
+
+      对于重复设置为true的提取器，它们的第一个匹配将包含在所有提取中。 这非常有用，例如当您想要在页面创建的所有事件中包含页面标题时。
+
+      # 解析 HTML 和 XML
+
+      解析HTML或XML时，这些子哈希指定了每次提取的完成方式。 代理首先通过评估css中的CSS选择器或xpath中的XPath表达式，为每个提取键从文档中选择一个节点集。 然后，它在节点集中的每个节点上以值（默认值：。）计算XPath表达式，并将结果转换为字符串。 这是一个例子：
 
           "extract": {
             "url": { "css": "#comic img", "value": "@src" },
             "title": { "css": "#comic img", "value": "@title" },
-            "body_text": { "css": "div.main", "value": ".//text()" }
+            "body_text": { "css": "div.main", "value": "string(.)" },
+            "page_title": { "css": "title", "value": "string(.)", "repeat": true }
+          }
+      or
+          "extract": {
+            "url": { "xpath": "//*[@class="blog-item"]/a/@href", "value": "."
+            "title": { "xpath": "//*[@class="blog-item"]/a", "value": "normalize-space(.)" },
+            "description": { "xpath": "//*[@class="blog-item"]/div[0]", "value": "string(.)" }
           }
 
-      "@_attr_" is the XPath expression to extract the value of an attribute named _attr_ from a node, and `.//text()` extracts all the enclosed text. To extract the innerHTML, use `./node()`; and to extract the outer HTML, use  `.`.
+      “@attr”是用于从节点中提取名为attr的属性的值的XPath表达式（例如来自超链接的“@href”），而string（。）给出一个字符串，其中所有包含的文本节点在没有实体转义的情况下连接在一起 （例如＆amp;）。 要提取innerHTML，请使用./node（）; 并提取外部HTML，使用..
 
-      You can also use [XPath functions](http://www.w3.org/TR/xpath/#section-String-Functions) like `normalize-space` to strip and squeeze whitespace, `substring-after` to extract part of a text, and `translate` to remove commas from formatted numbers, etc.  Note that these functions take a string, not a node set, so what you may think would be written as `normalize-space(.//text())` should actually be `normalize-space(.)`.
+      您还可以使用像规范化空格这样的XPath函数来剥离和压缩空格，使用substring-after提取文本的一部分，然后翻译以从格式化的数字中删除逗号等。而不是将字符串（。）传递给这些函数，您可以 刚过去 像normalize-space（。）和translate（。，'，'，''）。
 
-      Beware that when parsing an XML document (i.e. `type` is `xml`) using `xpath` expressions, all namespaces are stripped from the document unless the top-level option `use_namespaces` is set to `true`.
+      请注意，在使用xpath表达式解析XML文档（即type为xml）时，除非将顶级选项use_namespaces设置为true，否则将从文档中删除所有名称空间。
 
-      # Scraping JSON
+      对于数组设置为true的提取，所有匹配都将提取到数组中。 这在提取只能与同一选择器匹配的列表元素或网站的多个部分时非常有用。
 
-      When parsing JSON, these sub-hashes specify [JSONPaths](http://goessner.net/articles/JsonPath/) to the values that you care about.  For example:
+      # 解析 JSON
+
+      解析JSON时，这些子哈希将JSONPath指定为您关心的值。
+
+      传入事件示例：
+
+          { "results": {
+              "data": [
+                {
+                  "title": "Lorem ipsum 1",
+                  "description": "Aliquam pharetra leo ipsum."
+                  "price": 8.95
+                },
+                {
+                  "title": "Lorem ipsum 2",
+                  "description": "Suspendisse a pulvinar lacus."
+                  "price": 12.99
+                },
+                {
+                  "title": "Lorem ipsum 3",
+                  "description": "Praesent ac arcu tellus."
+                  "price": 8.99
+                }
+              ]
+            }
+          }
+
+        示例规则：
 
           "extract": {
             "title": { "path": "results.data[*].title" },
             "description": { "path": "results.data[*].description" }
           }
 
-      The `extract` option can be skipped for the JSON type, causing the full JSON response to be returned.
+        在此示例中，*通配符使解析器迭代数据数组的所有项。 结果将创建三个事件。
 
-      # Scraping Text
+      示例传出事件：
 
-      When parsing text, each sub-hash should contain a `regexp` and `index`.  Output text is matched against the regular expression repeatedly from the beginning through to the end, collecting a captured group specified by `index` in each match.  Each index should be either an integer or a string name which corresponds to <code>(?&lt;<em>name</em>&gt;...)</code>.  For example, to parse lines of <code><em>word</em>: <em>definition</em></code>, the following should work:
+          [
+            {
+              "title": "Lorem ipsum 1",
+              "description": "Aliquam pharetra leo ipsum."
+            },
+            {
+              "title": "Lorem ipsum 2",
+              "description": "Suspendisse a pulvinar lacus."
+            },
+            {
+              "title": "Lorem ipsum 3",
+              "description": "Praesent ac arcu tellus."
+            }
+          ]
+
+
+      可以跳过JSON类型的extract选项，从而返回完整的JSON响应。
+
+      # 解析文本
+
+      解析文本时，每个子哈希应包含正则表达式和索引。 输出文本从开头到结尾重复匹配正则表达式，收集每个匹配中由index指定的捕获组。 每个索引应该是整数或字符串名称，对应于（？<name> ...）。 例如，要解析word：definition的行，以下内容应该有效：
 
           "extract": {
-            "word": { "regexp": "^(.+?): (.+)$", index: 1 },
-            "definition": { "regexp": "^(.+?): (.+)$", index: 2 }
+            "word": { "regexp": "^(.+?): (.+)$", "index": 1 },
+            "definition": { "regexp": "^(.+?): (.+)$", "index": 2 }
           }
 
-      Or if you prefer names to numbers for index:
+      或者，如果您更喜欢名称与索引的数字：
 
           "extract": {
-            "word": { "regexp": "^(?<word>.+?): (?<definition>.+)$", index: 'word' },
-            "definition": { "regexp": "^(?<word>.+?): (?<definition>.+)$", index: 'definition' }
+            "word": { "regexp": "^(?<word>.+?): (?<definition>.+)$", "index": "word" },
+            "definition": { "regexp": "^(?<word>.+?): (?<definition>.+)$", "index": "definition" }
           }
 
-      To extract the whole content as one event:
+      要将整个内容提取为一个事件：
 
           "extract": {
-            "content": { "regexp": "\A(?m:.)*\z", index: 0 }
+            "content": { "regexp": "\\A(?m:.)*\\z", "index": 0 }
           }
 
-      Beware that `.` does not match the newline character (LF) unless the `m` flag is in effect, and `^`/`$` basically match every line beginning/end.  See [this document](http://ruby-doc.org/core-#{RUBY_VERSION}/doc/regexp_rdoc.html) to learn the regular expression variant used in this service.
+      要小心。 除非m标志生效，否则与换行符（LF）不匹配，并且^ / $基本匹配每行开头/结尾。 请参阅此文档以了解此服务中使用的正则表达式变体。
 
-      # General Options
+      # 常规选项
 
-      Can be configured to use HTTP basic auth by including the `basic_auth` parameter with `"username:password"`, or `["username", "password"]`.
+      可以通过将basic_auth参数包含在“username：password”或[“username”，“password”]中来配置为使用HTTP basic auth。
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.  This is only used to set the "working" status.
+      将expected_update_period_in_days设置为您希望在此代理创建的事件之间传递的最长时间。 这仅用于设置“工作”状态。
 
-      Set `uniqueness_look_back` to limit the number of events checked for uniqueness (typically for performance).  This defaults to the larger of #{UNIQUENESS_LOOK_BACK} or #{UNIQUENESS_FACTOR}x the number of detected received results.
+      设置uniqueness_look_back以限制为唯一性检查的事件数（通常用于性能）。 默认值为检测到的接收结果数量的200或3倍。
 
-      Set `force_encoding` to an encoding name if the website is known to respond with a missing, invalid, or wrong charset in the Content-Type header.  Note that a text content without a charset is taken as encoded in UTF-8 (not ISO-8859-1).
+      如果已知网站在Content-Type标头中响应丢失，无效或错误的字符集，则将force_encoding设置为编码名称（例如UTF-8和ISO-8859-1）。 以下是Huginn用于检测已获取内容的编码的步骤：
 
-      Set `user_agent` to a custom User-Agent name if the website does not like the default value (`#{default_user_agent}`).
+      1. 如果给出force_encoding，则使用该值
+      2. 如果Content-Type标头包含charset参数，则使用该值。
+      3. 当type为html或xml时，Huginn会检查是否存在BOM，带有属性“encoding”的XML声明，或带有charset信息的HTML元标记，如果找到则使用它。
+      4. Huginn回归到UTF-8（不是ISO-8859-1）。
 
-      The `headers` field is optional.  When present, it should be a hash of headers to send with the request.
+      如果网站不喜欢默认值（Huginn - https://github.com/huginn/huginn），请将user_agent设置为自定义User-Agent名称。
 
-      Set `disable_ssl_verification` to `true` to disable ssl verification.
+      标题字段是可选的。 如果存在，它应该是与请求一起发送的标头的散列。
 
-      Set `unzip` to `gzip` to inflate the resource using gzip.
+      将disable_ssl_verification设置为true以禁用ssl验证。
 
-      Set `http_success_codes` to an array of status codes (e.g., `[404, 422]`) to treat HTTP response codes beyond 200 as successes.
+      设置解压缩到gzip以使用gzip来扩充资源。
 
-      # Liquid Templating
+      将http_success_codes设置为状态代码数组（例如，[404,422]）以将超过200的HTTP响应代码视为成功。
 
-      In Liquid templating, the following variable is available:
+      如果给出了模板选项，则其值必须是散列，其键值对在每次迭代的提取后进行插值并与有效负载合并。 在模板中，可以插入提取数据的键，并且还可以使用一些其他变量，如下一节中所述。 例如：
 
-      * `_response_`: A response object with the following keys:
+          "template": {
+            "url": "{{ url | to_uri: _response_.url }}",
+            "description": "{{ body_text }}",
+            "last_modified": "{{ _response_.headers.Last-Modified | date: '%FT%T' }}"
+          }
 
-          * `status`: HTTP status as integer. (Almost always 200)
+      在on_change模式下，应用此选项后，将根据生成的事件有效内容检测更改。 如果要为每个事件添加一些键但忽略其中的任何更改，请将mode设置为all并将DeDuplicationAgent置于下游。
 
-          * `headers`: Response headers; for example, `{{ _response_.headers.Content-Type }}` expands to the value of the Content-Type header.  Keys are insensitive to cases and -/_.
+      # Liquid 模板
 
-      # Ordering Events
+      在Liquid模板中，可以使用以下变量：
+
+      * `_url_`: 指定用于从中获取内容的URL。 解析data_from_event时，未设置此值。
+
+      * `_response_`: 具有以下键的响应对象：
+
+          * `status`: HTTP状态为整数。 （几乎总是200）在解析data_from_event时，如果它是一个数字或可转换为整数的字符串，则将其设置为传入事件中状态键的值。
+
+          * `headers`: 响应标头; 例如，{{_ response_.headers.Content-Type}}扩展为Content-Type标头的值。 键对案例不敏感，而且 - / _。 解析data_from_event时，如果它是一个哈希，则由传入事件中的头键值构成。
+
+          * `url`: 重定向后，获取页面的最终URL。 解析data_from_event时，将其设置为传入事件中url键的值。 在模板选项中使用此选项，您可以解析从{{link | to_uri：_response_.url}}和{{content | rebase_hrefs：_response_.url}}。
+
+      # 事件排序
 
       #{description_events_order}
     MD
 
     event_description do
-      "Events will have the following fields:\n\n    %s" % [
-        Utils.pretty_print(Hash[options['extract'].keys.map { |key|
-          [key, "..."]
-        }])
-      ]
+      if keys = event_keys
+        "Events will have the following fields:\n\n    %s" % [
+          Utils.pretty_print(Hash[event_keys.map { |key|
+                                    [key, "..."]
+                                  }])
+        ]
+      else
+        "Events will be the raw JSON returned by the URL."
+      end
+    end
+
+    def event_keys
+      extract = options['extract'] or return nil
+
+      extract.each_with_object([]) { |(key, value), keys|
+        keys << key unless boolify(value['hidden'])
+      } | (options['template'].presence.try!(:keys) || [])
     end
 
     def working?
@@ -136,7 +226,7 @@ module Agents
     def default_options
       {
           'expected_update_period_in_days' => "2",
-          'url' => "http://xkcd.com",
+          'url' => "https://xkcd.com",
           'type' => "html",
           'mode' => "on_change",
           'extract' => {
@@ -152,6 +242,7 @@ module Agents
       errors.add(:base, "either url, url_from_event, or data_from_event are required") unless options['url'].present? || options['url_from_event'].present? || options['data_from_event'].present?
       errors.add(:base, "expected_update_period_in_days is required") unless options['expected_update_period_in_days'].present?
       validate_extract_options!
+      validate_template_options!
       validate_http_success_codes!
 
       # Check for optional fields
@@ -276,6 +367,15 @@ module Agents
       end
     end
 
+    def validate_template_options!
+      template = options['template'].presence or return
+
+      unless Hash === template &&
+             template.each_pair.all? { |key, value| String === value }
+        errors.add(:base, 'template must be a hash of strings.')
+      end
+    end
+
     def check
       check_urls(interpolated['url'])
     end
@@ -300,6 +400,7 @@ module Agents
       raise "Failed: #{response.inspect}" unless consider_response_successful?(response)
 
       interpolation_context.stack {
+        interpolation_context['_url_'] = uri.to_s
         interpolation_context['_response_'] = ResponseDrop.new(response)
         handle_data(response.body, response.env[:url], existing_payload)
       }
@@ -307,7 +408,19 @@ module Agents
       error "Error when fetching url: #{e.message}\n#{e.backtrace.join("\n")}"
     end
 
+    def default_encoding
+      case extraction_type
+      when 'html', 'xml'
+        # Let Nokogiri detect the encoding
+        nil
+      else
+        super
+      end
+    end
+
     def handle_data(body, url, existing_payload)
+      # Beware, url may be a URI object, string or nil
+
       doc = parse(body)
 
       if extract_full_json?
@@ -328,20 +441,18 @@ module Agents
             extract_xml(doc)
         end
 
-      num_unique_lengths = interpolated['extract'].keys.map { |name| output[name].length }.uniq
+      num_tuples = output.size or
+        raise "At least one non-repeat key is required"
 
-      if num_unique_lengths.length != 1
-        raise "Got an uneven number of matches for #{interpolated['name']}: #{interpolated['extract'].inspect}"
-      end
+      old_events = previous_payloads num_tuples
 
-      old_events = previous_payloads num_unique_lengths.first
-      num_unique_lengths.first.times do |index|
-        result = {}
-        interpolated['extract'].keys.each do |name|
-          result[name] = output[name][index]
-          if name.to_s == 'url' && url.present?
-            result[name] = (url + Utils.normalize_uri(result[name])).to_s
-          end
+      template = options['template'].presence
+
+      output.each do |extracted|
+        result = extracted.except(*output.hidden_keys)
+
+        if template
+          result.update(interpolate_options(template, extracted))
         end
 
         if store_payload!(old_events, result)
@@ -385,7 +496,10 @@ module Agents
     end
 
     def handle_event_data(data, event, existing_payload)
-      handle_data(data, event.payload['url'], existing_payload)
+      interpolation_context.stack {
+        interpolation_context['_response_'] = ResponseFromEventDrop.new(event)
+        handle_data(data, event.payload['url'].presence, existing_payload)
+      }
     rescue => e
       error "Error when handling event data: #{e.message}\n#{e.backtrace.join("\n")}", inbound_event: event
     end
@@ -443,7 +557,7 @@ module Agents
     end
 
     def use_namespaces?
-      if value = interpolated.key?('use_namespaces')
+      if interpolated.key?('use_namespaces')
         boolify(interpolated['use_namespaces'])
       else
         interpolated['extract'].none? { |name, extraction_details|
@@ -453,37 +567,51 @@ module Agents
     end
 
     def extract_each(&block)
-      interpolated['extract'].each_with_object({}) { |(name, extraction_details), output|
-        output[name] = block.call(extraction_details)
+      interpolated['extract'].each_with_object(Output.new) { |(name, extraction_details), output|
+        if boolify(extraction_details['repeat'])
+          values = Repeater.new { |repeater|
+            block.call(extraction_details, repeater)
+          }
+        else
+          values = []
+          block.call(extraction_details, values)
+        end
+        log "Values extracted: #{values}"
+        begin
+          output[name] = values
+        rescue UnevenSizeError
+          raise "Got an uneven number of matches for #{interpolated['name']}: #{interpolated['extract'].inspect}"
+        else
+          output.hidden_keys << name if boolify(extraction_details['hidden'])
+        end
       }
     end
 
     def extract_json(doc)
-      extract_each { |extraction_details|
-        result = Utils.values_at(doc, extraction_details['path'])
-        log "Extracting #{extraction_type} at #{extraction_details['path']}: #{result}"
-        result
+      extract_each { |extraction_details, values|
+        log "Extracting #{extraction_type} at #{extraction_details['path']}"
+        Utils.values_at(doc, extraction_details['path']).each { |value|
+          values << value
+        }
       }
     end
 
     def extract_text(doc)
-      extract_each { |extraction_details|
+      extract_each { |extraction_details, values|
         regexp = Regexp.new(extraction_details['regexp'])
+        log "Extracting #{extraction_type} with #{regexp}"
         case index = extraction_details['index']
         when /\A\d+\z/
           index = index.to_i
         end
-        result = []
         doc.scan(regexp) {
-          result << Regexp.last_match[index]
+          values << Regexp.last_match[index]
         }
-        log "Extracting #{extraction_type} at #{regexp}: #{result}"
-        result
       }
     end
 
     def extract_xml(doc)
-      extract_each { |extraction_details|
+      extract_each { |extraction_details, values|
         case
         when css = extraction_details['css']
           nodes = doc.css(css)
@@ -492,29 +620,26 @@ module Agents
         else
           raise '"css" or "xpath" is required for HTML or XML extraction'
         end
+        log "Extracting #{extraction_type} at #{xpath || css}"
         case nodes
         when Nokogiri::XML::NodeSet
-          result = nodes.map { |node|
-            value = node.xpath(extraction_details['value'] || '.')
-            if value.is_a?(Nokogiri::XML::NodeSet)
-              child = value.first
-              if child && child.cdata?
-                value = child.text
-              end
-            end
-            case value
+          stringified_nodes  = nodes.map do |node|
+            case value = node.xpath(extraction_details['value'] || '.')
             when Float
               # Node#xpath() returns any numeric value as float;
               # convert it to integer as appropriate.
               value = value.to_i if value.to_i == value
             end
             value.to_s
-          }
+          end
+          if boolify(extraction_details['array'])
+            values << stringified_nodes
+          else
+            stringified_nodes.each { |n| values << n }
+          end
         else
           raise "The result of HTML/XML extraction was not a NodeSet"
         end
-        log "Extracting #{extraction_type} at #{xpath || css}: #{result}"
-        result
       }
     end
 
@@ -536,10 +661,61 @@ module Agents
       end
     end
 
-    def is_positive_integer?(value)
-      Integer(value) >= 0
-    rescue
-      false
+    class UnevenSizeError < ArgumentError
+    end
+
+    class Output
+      def initialize
+        @hash = {}
+        @size = nil
+        @hidden_keys = []
+      end
+
+      attr_reader :size
+      attr_reader :hidden_keys
+
+      def []=(key, value)
+        case size = value.size
+        when Integer
+          if @size && @size != size
+            raise UnevenSizeError, 'got an uneven size'
+          end
+          @size = size
+        end
+
+        @hash[key] = value
+      end
+
+      def each
+        @size.times.zip(*@hash.values) do |index, *values|
+          yield @hash.each_key.lazy.zip(values).to_h
+        end
+      end
+    end
+
+    class Repeater < Enumerator
+      # Repeater.new { |y|
+      #   # ...
+      #   y << value
+      # } #=> [value, ...]
+      def initialize(&block)
+        @value = nil
+        super(Float::INFINITY) { |y|
+          loop { y << @value }
+        }
+        catch(@done = Object.new) {
+          block.call(self)
+        }
+      end
+
+      def <<(value)
+        @value = value
+        throw @done
+      end
+
+      def to_s
+        "[#{@value.inspect}, ...]"
+      end
     end
 
     # Wraps Faraday::Response
@@ -552,11 +728,34 @@ module Agents
       def status
         @object.status
       end
+
+      # The URL
+      def url
+        @object.env.url.to_s
+      end
+    end
+
+    class ResponseFromEventDrop < LiquidDroppable::Drop
+      def headers
+        headers = Faraday::Utils::Headers.from(@object.payload[:headers]) rescue {}
+
+        HeaderDrop.new(headers)
+      end
+
+      # Integer value of HTTP status
+      def status
+        Integer(@object.payload[:status]) rescue nil
+      end
+
+      # The URL
+      def url
+        @object.payload[:url]
+      end
     end
 
     # Wraps Faraday::Utils::Headers
     class HeaderDrop < LiquidDroppable::Drop
-      def before_method(name)
+      def liquid_method_missing(name)
         @object[name.tr('_', '-')]
       end
     end

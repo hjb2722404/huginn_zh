@@ -8,19 +8,17 @@ module Agents
     gem_dependency_check { defined?(Jabber) }
 
     description <<-MD
-      The Jabber Agent will send any events it receives to your Jabber/XMPP IM account.
+      Jabber代理会将收到的任何事件发送到您的Jabber / XMPP IM帐户。
 
       #{'## Include `xmpp4r` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      Specify the `jabber_server` and `jabber_port` for your Jabber server.
+      为Jabber服务器指定jabber_server和jabber_port。
 
-      The `message` is sent from `jabber_sender` to `jaber_receiver`. This message
-      can contain any keys found in the source's payload, escaped using double curly braces.
-      ex: `"News Story: {{title}}: {{url}}"`
+      消息从jabber_sender发送到jaber_receiver。 此消息可以包含在源的有效负载中找到的任何键，使用双花括号进行转义。 例如：“新闻故事：{{title}}：{{url}}”
 
-      When `connect_to_receiver` is set to true, the JabberAgent will emit an event for every message it receives.
+      当connect_to_receiver设置为true时，JabberAgent将为它接收的每条消息发出一个事件。
 
-      Have a look at the [Wiki](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) to learn more about liquid templating.
+      查看Wiki以了解有关liquid模板的更多信息。
     MD
 
     event_description <<-MD

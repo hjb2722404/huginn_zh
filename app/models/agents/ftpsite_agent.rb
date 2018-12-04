@@ -12,29 +12,29 @@ module Agents
 
     description do
       <<-MD
-        The Ftp Site Agent checks an FTP site and creates Events based on newly uploaded files in a directory. When receiving events it creates files on the configured FTP server.
+        Ftp Site Agent 检查FTP站点并根据目录中新上载的文件创建事件。 接收事件时，它会在配置的FTP服务器上创建文件。
 
         #{'## Include `net-ftp-list` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-        `mode` must be present and either `read` or `write`, in `read` mode the agent checks the FTP site for changed files, with `write` it writes received events to a file on the server.
+        `mode` 必须存在，可以是read或write，在read模式下，代理会检查FTP站点是否有已更改的文件，write时会将收到的事件写入服务器上的文件。
 
-        ### Universal options
+        ### 通用配置项
 
-        Specify a `url` that represents a directory of an FTP site to watch, and a list of `patterns` to match against file names.
+        指定表示要监视的FTP站点的目录的URL，以及与文件名匹配的模式列表。
 
-        Login credentials can be included in `url` if authentication is required: `ftp://username:password@ftp.example.com/path`. Liquid formatting is supported as well: `ftp://{% credential ftp_credentials %}@ftp.example.com/`
+        如果需要身份验证，则可以在URL中包含登录凭据：ftp：// username：password@ftp.example.com/path。 也支持液体格式：ftp：// {％credential ftp_credentials％} @ ftp.example.com/
 
-        Optionally specify the encoding of the files you want to read/write in `force_encoding`, by default UTF-8 is used.
+        （可选）在force_encoding中指定要读取/写入的文件的编码，默认情况下使用UTF-8。
 
-        ### Reading
+        ### 读取
 
-        Only files with a last modification time later than the `after` value, if specifed, are emitted as event.
+        只有最后修改时间晚于after值的文件（如果已指定）才会作为事件发出。
 
-        ### Writing
+        ### 写入
 
-        Specify the filename to use in `filename`, Liquid interpolation is possible to change the name per event.
+        指定要在文件名中使用的文件名，可以使用液体插值更改每个事件的名称。
 
-        Use [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) templating in `data` to specify which part of the received event should be written.
+        在数据中使用[Liquid](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid) 模板来指定应写入接收事件的哪个部分
 
         #{emitting_file_handling_agent_description}
       MD
@@ -256,12 +256,6 @@ module Agents
     end
 
     private
-
-    def is_positive_integer?(value)
-      Integer(value) >= 0
-    rescue
-      false
-    end
 
     def uri_path_escape(string)
       str = string.b

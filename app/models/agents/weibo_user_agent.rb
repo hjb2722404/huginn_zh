@@ -7,15 +7,15 @@ module Agents
     cannot_receive_events!
 
     description <<-MD
-      The Weibo User Agent follows the timeline of a specified Weibo user. It uses this endpoint: http://open.weibo.com/wiki/2/statuses/user_timeline/en
+      The Weibo User Agent 跟踪指定微博用户的时间线。 它使用此端点：http：//open.weibo.com/wiki/2/statuses/user_timeline/en
 
       #{'## Include `weibo_2` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      You must first set up a Weibo app and generate an `acess_token` to authenticate with. Provide that, along with the `app_key` and `app_secret` for your Weibo app in the options.
+      您必须首先设置一个微博应用程序并生成一个`acess_token`来进行身份验证。 在选项中为您的微博应用程序提供`app_key`和`app_secret`。
 
-      Specify the `uid` of the Weibo user whose timeline you want to watch.
+      指定要查看其时间线的微博用户的`uid`。
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.
+       将`expected_update_period_in_days`设置为您希望在此代理创建的事件之间传递的最长时间。
     MD
 
     event_description <<-MD

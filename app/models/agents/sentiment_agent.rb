@@ -7,11 +7,12 @@ module Agents
     cannot_be_scheduled!
 
     description <<-MD
-      The Sentiment Agent generates `good-bad` (psychological valence or happiness index), `active-passive` (arousal), and  `strong-weak` (dominance) score. It will output a value between 1 and 9. It will only work on English content.
 
-      Make sure the content this agent is analyzing is of sufficient length to get respectable results.
+      情绪代理产生好坏（心理价值或幸福指数），主动 - 被动（唤醒）和强 - 弱（支配）分数。 它将输出1到9之间的值。它仅适用于英语内容。
 
-      Provide a JSONPath in `content` field where content is residing and set `expected_receive_period_in_days` to the maximum number of days you would allow to be passed between events being received by this agent.
+      确保此代理正在分析的内容足以获得可观的结果。
+
+      在内容所在的内容字段中提供JSONPath，并将expected_receive_period_in_days设置为允许在此代理接收的事件之间传递的最大天数。
     MD
 
     event_description <<-MD

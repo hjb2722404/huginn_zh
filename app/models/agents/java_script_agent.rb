@@ -10,11 +10,11 @@ module Agents
     default_schedule "never"
 
     description <<-MD
-      The JavaScript Agent allows you to write code in JavaScript that can create and receive events.  If other Agents aren't meeting your needs, try this one!
+      JavaScript代理允许您使用JavaScript编写可以创建和接收事件的代码。 如果其他代理无法满足您的需求，请尝试这个
 
-      You can put code in the `code` option, or put your code in a Credential and reference it from `code` with `credential:<name>` (recommended).
+      您可以将代码放在代码选项中，或将代码放在Credential中，并使用凭证：<name>（推荐）从代码中引用它。
 
-      You can implement `Agent.check` and `Agent.receive` as you see fit.  The following methods will be available on Agent in the JavaScript environment:
+      您可以根据需要实施Agent.check和Agent.receive。 JavaScript环境中的代理程序将提供以下方法：
 
       * `this.createEvent(payload)`
       * `this.incomingEvents()` (the returned event objects will each have a `payload` property)

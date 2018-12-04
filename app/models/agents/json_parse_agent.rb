@@ -3,19 +3,23 @@ module Agents
     include FormConfigurable
 
     cannot_be_scheduled!
+    can_dry_run!
 
     description <<-MD
-      The JSON Parse Agent parses a JSON string and emits the data in a new event
+      JSON Parse代理解析JSON字符串并在新事件中发出数据或与原始事件合并。
 
-      `data` is the JSON to parse. Use [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) templating to specify the JSON string.
+      `data` 是要解析的JSON。 使用Liquid模板指定JSON字符串。
 
-      `data_key` sets the key which contains the parsed JSON data in emitted events
+      `data_key` 设置包含已发布事件中已解析JSON数据的键
+
+      `mode` 确定是创建新的干净事件还是将旧有效负载与新值合并（默认值：clean）
     MD
 
     def default_options
       {
         'data' => '{{ data }}',
         'data_key' => 'data',
+        'mode' => 'clean',
       }
     end
 
@@ -25,10 +29,14 @@ module Agents
 
     form_configurable :data
     form_configurable :data_key
+    form_configurable :mode, type: :array, values: ['clean', 'merge']
 
     def validate_options
       errors.add(:base, "data needs to be present") if options['data'].blank?
       errors.add(:base, "data_key needs to be present") if options['data_key'].blank?
+      if options['mode'].present? && !options['mode'].to_s.include?('{{') && !%[clean merge].include?(options['mode'].to_s)
+        errors.add(:base, "mode must be 'clean' or 'merge'")
+      end
     end
 
     def working?
@@ -39,7 +47,8 @@ module Agents
       incoming_events.each do |event|
         begin
           mo = interpolated(event)
-          create_event payload: { mo['data_key'] => JSON.parse(mo['data']) }
+          existing_payload = mo['mode'].to_s == 'merge' ? event.payload : {}
+          create_event payload: existing_payload.merge({ mo['data_key'] => JSON.parse(mo['data']) })
         rescue JSON::JSONError => e
           error("Could not parse JSON: #{e.class} '#{e.message}'")
         end

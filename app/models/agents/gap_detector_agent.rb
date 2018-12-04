@@ -3,11 +3,9 @@ module Agents
     default_schedule "every_10m"
 
     description <<-MD
-      The Gap Detector Agent will watch for holes or gaps in a stream of incoming Events and generate "no data alerts".
+      Gap Detector Agent将监视传入事件流中的漏洞或间隙，并生成“无数据警报”
 
-      The `value_path` value is a [JSONPath](http://goessner.net/articles/JsonPath/) to a value of interest. If either
-      this value is empty, or no Events are received, during `window_duration_in_days`, an Event will be created with
-      a payload of `message`.
+      `value_path`值是感兴趣的值的[JSONPath](http://goessner.net/articles/JsonPath/)。 如果此值为空，或者未收到任何事件，则在`window_duration_in_days`期间，将创建一个带有`message`有效负载的事件。
     MD
 
     event_description <<-MD

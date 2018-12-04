@@ -1,0 +1,164 @@
+<div class="row">
+  <div class="col-md-12">
+    <% if @scenario_import.dangerous? %>
+      <div class="alert alert-danger">
+        <span class='glyphicon glyphicon-warning-sign'></span>
+        此方案包含一个或多个潜在危险的代理。
+         这些可能能够运行本地命令或执行代码。
+         导入前请确保您了解代理配置！
+      </div>
+    <% end %>
+
+    <% if @scenario_import.existing_scenario.present? %>
+      <div class="alert alert-warning">
+        <span class='glyphicon glyphicon-warning-sign'></span>
+        此方案已存在于您的系统中。 导入将更新您现有的
+        <%= scenario_label(@scenario_import.existing_scenario) %> 场景的标题，
+                 描述和标签颜色。 您可以在下面自定义各个代理的更新方式.
+      </div>
+    <% end %>
+
+    <div class="page-header">
+      <h2>
+        <%= @scenario_import.parsed_data["name"] %>
+        <span class='text-muted'>
+          (<%= pluralize @scenario_import.parsed_data["agents"].length, "Agent" %>;
+          exported <%= time_ago_in_words Time.parse(@scenario_import.parsed_data["exported_at"]) %> ago)
+        </span>
+      </h2>
+    </div>
+
+    <% if @scenario_import.parsed_data["description"].present? %>
+      <blockquote><%= markdown(@scenario_import.parsed_data["description"]) %></blockquote>
+    <% end %>
+
+  </div>
+</div>
+
+<div class='agent-import-list'>
+  <% @scenario_import.agent_diffs.each.with_index do |agent_diff, index| %>
+    <div class='agent-import' data-index='<%= index %>'>
+
+      <div class='row'>
+        <div class='col-md-12'>
+          <h3>
+            <a href='#' data-toggle="modal" data-target="#agent_options_<%= index %>"><%= agent_diff.name.incoming %></a>
+            <span class='text-muted'>
+              (<%= agent_diff.type.incoming %><% " - 警告：此代理的类型已更改。 这种导入可能会失败！" if agent_diff.type.requires_merge? %>)
+            </span>
+          </h3>
+
+          <% if agent_diff.agent_exists? %>
+            <div class="instructions">
+            此代理存在于您的Huginn系统中.
+
+              <% if agent_diff.requires_merge? %>
+              以下是传入版本与您现有版本之间的差异。 请为每个领域
+                               选择您想要保留的值.
+              <% else %>
+              它已经是最新的.
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="modal fade" id="agent_options_<%= index %>" tabindex="-1" role="dialog" aria-labelledby="modalLabel<%= index %>" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="modalLabel<%= index %>">Options for '<%= agent_diff.name.updated %>'</h4>
+            </div>
+            <div class="modal-body">
+              <pre class='options'><%= Utils.pretty_jsonify agent_diff.options.incoming %></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% agent_diff.each_field do |field, value, selection_options| %>
+        <div class='row'>
+          <div class='col-md-4'>
+            <div class="form-group">
+              <%= label_tag "scenario_import[merges][#{index}][#{field}]", field.titleize %>
+              <% if selection_options.present? %>
+                <div>
+                您当前代理的值是:
+                  <span class='current'><%= selection_options.find { |s| s.last.to_s == value.current.to_s }.first %></span>
+                </div>
+                <%= select_tag "scenario_import[merges][#{index}][#{field}]", options_for_select(selection_options, value.updated), :class => 'form-control' %>
+              <% else %>
+                <div>
+                您当前代理的值是: <span class='current'><%= value.current.to_s %></span>
+                </div>
+                <%= text_field_tag "scenario_import[merges][#{index}][#{field}]", value.updated, :class => 'form-control' %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <div class='row'>
+        <% if agent_diff.options.requires_merge? %>
+          <div class='col-md-12'>
+            <label>配置</label>
+          </div>
+
+          <div class='col-md-6'>
+            <textarea name="scenario_import[merges][<%= index %>][options]" rows='15' class="form-control live-json-editor">
+              <%= Utils.pretty_jsonify(agent_diff.options.updated) %>
+            </textarea>
+          </div>
+
+          <div class='col-md-6'>
+            <div>
+            您当前的选择：
+            </div>
+            <pre class='options'><%= Utils.pretty_jsonify agent_diff.options.current %></pre>
+          </div>
+        <% end %>
+      </div>
+
+      <% if agent_diff.requires_service? %>
+        <div class='row'>
+          <div class='col-md-4'>
+            <div class="form-group type-select">
+              <%= label_tag "scenario_import[merges][#{index}][service_id]", '服务' %>
+              <%= select_tag "scenario_import[merges][#{index}][service_id]", options_for_select(agent_diff.agent_instance.valid_services_for(current_user).collect { |s| ["(#{s.provider}) #{s.name}", s.id]}, agent_diff.agent.try(:service_id)), class: 'form-control' %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<div class='row'>
+  <div class='col-md-12'>
+    <div class="checkbox">
+      <%= f.label :do_import do %>
+        <%= f.check_box :do_import %> 我确认我要导入这些代理.
+      <% end %>
+    </div>
+
+    <div class='form-actions'>
+      <%= f.submit "Finish Import", :class => "btn btn-primary" %>
+    </div>
+  </div>
+</div>
+
+
+<script>
+//  $(function() {
+//    $('.agent-import-list .options-toggle').on('click', function (e) {
+//      e.preventDefault();
+//      $(this).siblings('.options').slideToggle()
+//      if ($(this).text() == "Show Options") {
+//        $(this).text("Hide Options");
+//      } else {
+//        $(this).text("Show Options");
+//      }
+//    });
+//  });
+</script>

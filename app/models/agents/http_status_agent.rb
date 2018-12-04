@@ -1,3 +1,5 @@
+require 'time_tracker'
+
 module Agents
 
   class HttpStatusAgent < Agent
@@ -11,15 +13,18 @@ module Agents
     default_schedule "every_12h"
 
     form_configurable :url
-    form_configurable :disable_redirect_follow, type: :array, values: ['true', 'false']
+    form_configurable :disable_redirect_follow, type: :boolean
+    form_configurable :changes_only, type: :boolean
     form_configurable :headers_to_save
 
     description <<-MD
-      The HttpStatusAgent will check a url and emit the resulting HTTP status code with the time that it waited for a reply. Additionally, it will optionally emit the value of one or more specified headers.
+      HttpStatusAgent将检查一个url，并在等待回复时发出生成的HTTP状态代码。 此外，它还可以选择性地发出一个或多个指定标头的值。
 
-      Specify a `Url` and the Http Status Agent will produce an event with the HTTP status code. If you specify one or more `Headers to save` (comma-delimited) as well, that header or headers' value(s) will be included in the event.
+      指定`url`并且Http Status Agent将生成具有HTTP状态代码的事件。 如果您指定一个或多个`Headers to save`（逗号分隔），那么标题或标题的值将包含在事件中。
 
-      The `disable redirect follow` option causes the Agent to not follow HTTP redirects. For example, setting this to `true` will cause an agent that receives a 301 redirect to `http://yahoo.com` to return a status of 301 instead of following the redirect and returning 200.
+      `disable redirect follow `选项会导致代理不遵循HTTP重定向。 例如，将此设置为`true`将导致接收301重定向到`http://yahoo.com`的代理返回301状态，而不是遵循重定向并返回200。
+
+      仅`changes only`会导致代理仅在状态更改时报告事件。 如果设置为`false`，则将为每个检查创建一个事件。 如果设置为`true`，则仅在状态更改时创建事件（例如，如果您的站点从200更改为500）。
     MD
 
     event_description <<-MD
@@ -61,7 +66,8 @@ module Agents
     def receive(incoming_events)
       incoming_events.each do |event|
         interpolate_with(event) do
-          check_this_url interpolated[:url], header_array(interpolated[:headers_to_save])
+          check_this_url interpolated[:url],
+                         header_array(interpolated[:headers_to_save])
         end
       end
     end
@@ -72,16 +78,18 @@ module Agents
       # Track time
       measured_result = TimeTracker.track { ping(url) }
 
+      current_status = measured_result.result ? measured_result.status.to_s : ''
+      return if options['changes_only'] == 'true' && current_status == memory['last_status'].to_s
+
       payload = { 'url' => url, 'response_received' => false, 'elapsed_time' => measured_result.elapsed_time }
 
       # Deal with failures
       if measured_result.result
-        payload.merge!({ 'response_received' => true, 'status' => measured_result.status.to_s })
+        final_url = boolify(interpolated['disable_redirect_follow']) ? url : measured_result.result.env.url.to_s
+        payload.merge!({ 'final_url' => final_url, 'redirected' => (url != final_url), 'response_received' => true, 'status' => current_status })
         # Deal with headers
         if local_headers.present?
-          header_results = measured_result.result.headers.select {|header, value| local_headers.include?(header)}
-          # Fill in headers that we wanted, but weren't returned
-          local_headers.each { |header| header_results[header] = nil unless header_results.has_key?(header) }
+          header_results = local_headers.each_with_object({}) { |header, hash| hash[header] = measured_result.result.headers[header] }
           payload.merge!({ 'headers' => header_results })
         end
         create_event payload: payload

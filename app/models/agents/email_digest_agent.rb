@@ -7,21 +7,18 @@ module Agents
     cannot_create_events!
 
     description <<-MD
-      The Email Digest Agent collects any Events sent to it and sends them all via email when scheduled.
+      
+      Email Digest Agent-电子邮件摘要代理会收集发送给它的任何事件，并在安排时通过电子邮件发送所有事件。 已使用事件的数量还依赖于发出代理的Keep事件选项，这意味着如果事件在此代理程序计划运行之前到期，它们将不会出现在电子邮件中。
 
-      By default, the will have a `subject` and an optional `headline` before listing the Events.  If the Events'
-      payloads contain a `message`, that will be highlighted, otherwise everything in
-      their payloads will be shown.
+      默认情况下，在列出事件之前，将有主题和可选标题。 如果事件的有效负载包含消息，则会突出显示该消息，否则将显示其有效负载中的所有内容。
 
-      You can specify one or more `recipients` for the email, or skip the option in order to send the email to your
-      account's default email address.
+      您可以为电子邮件指定一个或多个收件人，也可以跳过该选项以将电子邮件发送到您帐户的默认电子邮件地址。
 
-      You can provide a `from` address for the email, or leave it blank to default to the value of `EMAIL_FROM_ADDRESS` (`#{ENV['EMAIL_FROM_ADDRESS']}`).
+      您可以提供电子邮件的发件人地址，或将其留空以默认为EMAIL_FROM_ADDRESS（from_address@gmail.com）的值。
 
-      You can provide a `content_type` for the email and specify `text/plain` or `text/html` to be sent.
-      If you do not specify `content_type`, then the recipient email server will determine the correct rendering.
+      您可以为电子邮件提供`content_type`，并指定要发送的text / plain或text / html。 如果未指定content_type，则收件人电子邮件服务器将确定正确的呈现。
 
-      Set `expected_receive_period_in_days` to the maximum amount of time that you'd expect to pass between Events being received by this Agent.
+      将`expected_receive_period_in_days`设置为您希望在此代理接收的事件之间传递的最长时间。
     MD
 
     def default_options
@@ -37,18 +34,16 @@ module Agents
     end
 
     def receive(incoming_events)
+      self.memory['events'] ||= []
       incoming_events.each do |event|
-        self.memory['queue'] ||= []
-        self.memory['queue'] << event.payload
-        self.memory['events'] ||= []
         self.memory['events'] << event.id
       end
     end
 
     def check
-      if self.memory['queue'] && self.memory['queue'].length > 0
-        ids = self.memory['events'].join(",")
-        groups = self.memory['queue'].map { |payload| present(payload) }
+      if self.memory['events'] && self.memory['events'].length > 0
+        payloads = received_events.reorder("events.id ASC").where(id: self.memory['events']).pluck(:payload).to_a
+        groups = payloads.map { |payload| present(payload) }
         recipients.each do |recipient|
           begin
             SystemMailer.send_message(
@@ -59,13 +54,13 @@ module Agents
               content_type: interpolated['content_type'],
               groups: groups
             ).deliver_now
-            log "Sent digest mail to #{recipient} with events [#{ids}]"
+
+            log "Sent digest mail to #{recipient}"
           rescue => e
-            error("Error sending digest mail to #{recipient} with events [#{ids}]: #{e.message}")
+            error("Error sending digest mail to #{recipient}: #{e.message}")
             raise
           end
         end
-        self.memory['queue'] = []
         self.memory['events'] = []
       end
     end

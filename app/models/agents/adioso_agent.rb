@@ -5,10 +5,9 @@ module Agents
   	default_schedule "every_1d"
 
     description <<-MD
-  		The Adioso Agent will tell you the minimum airline prices between a pair of cities, and within a certain period of time.
+    Adioso Agent会告诉您一对城市之间以及在一段时间内的最低航空公司价格.
 
-      The currency is USD. Please make sure that the difference between `start_date` and `end_date` is less than 150 days. You will need to contact [Adioso](http://adioso.com/)
-  		for a `username` and `password`.
+    货币是美元。 请确保`start_date`和`end_date`之间的差异小于150天。 您需要联系Adioso以获取用户名和密码。
     MD
 
     event_description <<-MD

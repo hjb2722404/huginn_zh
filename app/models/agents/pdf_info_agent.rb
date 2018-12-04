@@ -10,13 +10,13 @@ module Agents
     no_bulk_receive!
 
     description <<-MD
-      The PDF Info Agent returns the metadata contained within a given PDF file, using HyPDF.
+      PDF Info Agent使用HyPDF返回给定PDF文件中包含的元数据
 
       #{'## Include the `hypdf` gem in your `Gemfile` to use PDFInfo Agents.' if dependencies_missing?}
 
-      In order for this agent to work, you need to have [HyPDF](https://devcenter.heroku.com/articles/hypdf) running and configured.
+      要使此代理程序正常工作，您需要运行并配置 [HyPDF](https://devcenter.heroku.com/articles/hypdf)。 
 
-      It works by acting on events that contain a key `url` in their payload, and runs the [pdfinfo](https://devcenter.heroku.com/articles/hypdf#pdfinfo) command on them.
+      它的工作原理是对包含有效负载中的密钥URL的事件进行操作，并对它们运行[pdfinfo](https://devcenter.heroku.com/articles/hypdf#pdfinfo)命令。 
     MD
 
     event_description <<-MD

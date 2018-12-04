@@ -4,14 +4,21 @@ module Agents
   class PeakDetectorAgent < Agent
     cannot_be_scheduled!
 
+    DEFAULT_SEARCH_URL = 'https://twitter.com/search?q={q}'
+
     description <<-MD
-      The Peak Detector Agent will watch for peaks in an event stream.  When a peak is detected, the resulting Event will have a payload message of `message`.  You can include extractions in the message, for example: `I saw a bar of: {{foo.bar}}`, have a look at the [Wiki](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) for details.
 
-      The `value_path` value is a [JSONPath](http://goessner.net/articles/JsonPath/) to the value of interest.  `group_by_path` is a JSONPath that will be used to group values, if present.
+      Peak Detector Agent将监视事件流中的峰值。 检测到峰值时，生成的事件将显示消息的有效负载消息。 您可以在消息中包含提取，例如：我看到了一个栏：{{foo.bar}}，请查看Wiki以获取详细信息
 
-      Set `expected_receive_period_in_days` to the maximum amount of time that you'd expect to pass between Events being received by this Agent.
+       value_path值是感兴趣的值的JSONPath。 group_by_path是一个JSONPath，用于对值进行分组（如果存在）。
 
-      You may set `window_duration_in_days` to change the default memory window length of `14` days, `min_peak_spacing_in_days` to change the default minimum peak spacing of `2` days (peaks closer together will be ignored), and `std_multiple` to change the default standard deviation threshold multiple of `3`.
+       将expected_receive_period_in_days设置为您希望在此代理接收的事件之间传递的最长时间。
+
+       您可以设置window_duration_in_days以更改默认内存窗口长度14天，min_peak_spacing_in_days更改默认最小峰值间隔2天（更接近的峰值将被忽略），并且std_multiple更改默认标准差阈值阈值倍数3。
+
+       在代理开始检测之前，您可以将min_events设置为最小累积事件数。
+
+       您可以使用RFC 6570中定义的URI模板语法将search_url设置为指向除Twitter搜索之外的其他内容。默认值为https://twitter.com/search?q={q}其中{q}将替换为组 名称。
     MD
 
     event_description <<-MD
@@ -26,8 +33,17 @@ module Agents
     MD
 
     def validate_options
-      unless options['expected_receive_period_in_days'].present? && options['message'].present? && options['value_path'].present?
-        errors.add(:base, "expected_receive_period_in_days, value_path, and message are required")
+      unless options['expected_receive_period_in_days'].present? && options['message'].present? && options['value_path'].present? && options['min_events'].present?
+        errors.add(:base, "expected_receive_period_in_days, value_path, min_events and message are required")
+      end
+      begin
+        tmpl = search_url
+      rescue => e
+        errors.add(:base, "search_url must be a valid URI template: #{e.message}")
+      else
+        unless tmpl.keys.include?('q')
+          errors.add(:base, "search_url must include a variable named 'q'")
+        end
       end
     end
 
@@ -36,7 +52,8 @@ module Agents
         'expected_receive_period_in_days' => "2",
         'group_by_path' => "filter",
         'value_path' => "count",
-        'message' => "A peak of {{count}} was found in {{filter}}"
+        'message' => "A peak of {{count}} was found in {{filter}}",
+        'min_events' => '4',
       }
     end
 
@@ -52,13 +69,19 @@ module Agents
       end
     end
 
+    def search_url
+      Addressable::Template.new(options[:search_url].presence || DEFAULT_SEARCH_URL)
+    end
+
     private
 
     def check_for_peak(group, event)
       memory['peaks'] ||= {}
       memory['peaks'][group] ||= []
 
-      if memory['data'][group].length > 4 && (memory['peaks'][group].empty? || memory['peaks'][group].last < event.created_at.to_i - peak_spacing)
+      return if memory['data'][group].length <= options['min_events'].to_i
+
+      if memory['peaks'][group].empty? || memory['peaks'][group].last < event.created_at.to_i - peak_spacing
         average_value, standard_deviation = stats_for(group, :skip_last => 1)
         newest_value, newest_time = memory['data'][group][-1].map(&:to_f)
 
@@ -116,7 +139,7 @@ module Agents
     def remember(group, event)
       memory['data'] ||= {}
       memory['data'][group] ||= []
-      memory['data'][group] << [ Utils.value_at(event.payload, interpolated['value_path']), event.created_at.to_i ]
+      memory['data'][group] << [ Utils.value_at(event.payload, interpolated['value_path']).to_f, event.created_at.to_i ]
       cleanup group
     end
 

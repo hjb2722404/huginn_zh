@@ -3,32 +3,34 @@ module Agents
     include WebRequestConcern
 
     cannot_be_scheduled!
+    cannot_create_events!
 
     description  do
       <<-MD
-        The Data Output Agent outputs received events as either RSS or JSON.  Use it to output a public or private stream of Huginn data.
+        Data Output Agent 将接收的事件输出为RSS或JSON。 用它来输出Huginn数据的公共或私有流
 
-        This Agent will output data at:
+        此代理将输出以下数据：
 
         `https://#{ENV['DOMAIN']}#{Rails.application.routes.url_helpers.web_requests_path(agent_id: ':id', user_id: user_id, secret: ':secret', format: :xml)}`
 
-        where `:secret` is one of the allowed secrets specified in your options and the extension can be `xml` or `json`.
+        其中：secret是您的选项中指定的允许秘密之一，扩展名可以是xml或json
 
-        You can setup multiple secrets so that you can individually authorize external systems to
-        access your Huginn data.
+        您可以设置多个机密，以便您可以单独授权外部系统访问您的Huginn数据。
 
-        Options:
+        配置项:
 
-          * `secrets` - An array of tokens that the requestor must provide for light-weight authentication.
-          * `expected_receive_period_in_days` - How often you expect data to be received by this Agent from other Agents.
-          * `template` - A JSON object representing a mapping between item output keys and incoming event values.  Use [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) to format the values.  Values of the `link`, `title`, `description` and `icon` keys will be put into the \\<channel\\> section of RSS output.  Value of the `self` key will be used as URL for this feed itself, which is useful when you serve it via reverse proxy.  The `item` key will be repeated for every Event.  The `pubDate` key for each item will have the creation time of the Event unless given.
-          * `events_to_show` - The number of events to output in RSS or JSON. (default: `40`)
-          * `ttl` - A value for the \\<ttl\\> element in RSS output. (default: `60`)
-          * `ns_media` - Add [yahoo media namespace](https://en.wikipedia.org/wiki/Media_RSS) in output xml
-          * `ns_itunes` - Add [itunes compatible namespace](http://lists.apple.com/archives/syndication-dev/2005/Nov/msg00002.html) in output xml
-          * `push_hubs` - Set to a list of PubSubHubbub endpoints you want to publish an update to every time this agent receives an event. (default: none)  Popular hubs include [Superfeedr](https://pubsubhubbub.superfeedr.com/) and [Google](https://pubsubhubbub.appspot.com/).  Note that publishing updates will make your feed URL known to the public, so if you want to keep it secret, set up a reverse proxy to serve your feed via a safe URL and specify it in `template.self`.
+          * `secrets` - 请求者必须提供的一组令牌，用于轻量级身份验证.
+          * `expected_receive_period_in_days` - 您希望此代理从其他代理接收数据的频率
+          * `template` - 一个JSON对象，表示项输出键和传入事件值之间的映射。 使用[Liquid](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid)格式化值。 链接，标题，描述和图标键的值将放入RSS输出的<channel>部分。 自键的值将用作此Feed本身的URL，这在通过反向代理提供时非常有用。 每个事件都会重复项密钥。 除非给定，否则每个项目的pubDate键将具有事件的创建时间。
+          * `events_to_show` - 要以RSS或JSON格式输出的事件数。 （默认值：40)
+          * `ttl` - RSS输出中<ttl>元素的值。 （默认值：60）
+          * `ns_media` - 在输出xml中添加[yahoo media](https://en.wikipedia.org/wiki/Media_RSS)命名空间.
+          * `ns_itunes` - 在输出xml中添加[itunes compatible](http://lists.apple.com/archives/syndication-dev/2005/Nov/msg00002.html) 命名空间.
+          * `rss_content_type` - RSS输出的Content-Type（默认值：application / rss + xml，application / rdf + xml; q = 0.8，application / atom + xml; q = 0.6，application / xml; q = 0.4，text / xml; q = 0.4 ）
+          * `response_headers` -  具有任何自定义响应标头的对象。 （例如：{“Access-Control-Allow-Origin”：“*”}）
+          * `push_hubs` - 设置为每次此代理接收事件时要发布更新的PubSubHubbub端点列表。 （默认：无）热门中心包括Superfeedr和Google。 请注意，发布更新会使您的供稿网址为公众所知，因此如果您想保密，请设置反向代理以通过安全网址提供Feed，并在template.self中指定。
 
-        If you'd like to output RSS tags with attributes, such as `enclosure`, use something like the following in your `template`:
+          如果您想输出带有属性的RSS标记，例如附件，请在`template`中使用以下内容：
 
             "enclosure": {
               "_attributes": {
@@ -45,15 +47,19 @@ module Agents
               "_contents": "tag contents (can be an object for nesting)"
             }
 
-        # Ordering events in the output
+        #  事件排序
 
-        #{description_events_order('events in the output')}
+        #{description_events_order('events')}
 
-        # Liquid Templating
+        DataOutputAgent将按events_order指定的顺序选择其接收事件的最后一个events_to_show条目，这些条目默认为事件创建时间。 因此，如果您有多个源代理可能在运行中创建许多事件，您可能希望增加events_to_show以具有更大的“窗口”，或者将events_order选项指定为适当的值（如date_published），以便来自各种来源的事件 在得到的饲料中适当混合。
 
-        In Liquid templating, the following variable is available:
+        还有一个选项events_list_order仅控制最终输出中列出的事件的顺序，而不尝试维护接收事件的总顺序。 它具有与events_order相同的格式，默认为[[“{{_index _}}”，“number”，true]]因此所选事件以相反的顺序列出，就像大多数热门RSS源列出他们的文章一样
 
-        * `events`: An array of events being output, sorted in the given order, up to `events_to_show` in number.  For example, if source events contain a site title in the `site_title` key, you can refer to it in `template.title` by putting `{{events.first.site_title}}`.
+        # Liquid 模板
+
+        在[Liquid](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid) 模板中, 有以下变量可以使用：
+
+        * `events`:  输出的事件数组，按给定顺序排序，最多为events_to_show。 例如，如果源事件在site_title键中包含站点标题，则可以通过放置{{events.first.site_title}}在template.title中引用它。
 
       MD
     end
@@ -155,8 +161,18 @@ module Agents
       interpolated['template']['icon'].presence || feed_link + '/favicon.ico'
     end
 
+    def itunes_icon
+      if(boolify(interpolated['ns_itunes']))
+        "<itunes:image href=#{feed_icon.encode(xml: :attr)} />"
+      end  
+    end
+
     def feed_description
       interpolated['template']['description'].presence || "A feed of Events received by the '#{name}' Huginn Agent"
+    end
+
+    def rss_content_type
+      interpolated['rss_content_type'].presence || 'application/rss+xml, application/rdf+xml;q=0.8, application/atom+xml;q=0.6, application/xml;q=0.4, text/xml;q=0.4'
     end
 
     def xml_namespace
@@ -175,6 +191,60 @@ module Agents
       interpolated['push_hubs'].presence || []
     end
 
+    DEFAULT_EVENTS_ORDER = {
+      'events_order' => nil,
+      'events_list_order' => [["{{_index_}}", "number", true]],
+    }
+
+    def events_order(key = SortableEvents::EVENTS_ORDER_KEY)
+      super || DEFAULT_EVENTS_ORDER[key]
+    end
+
+    def latest_events(reload = false)
+      received_events = received_events().reorder(id: :asc)
+
+      events =
+        if (event_ids = memory[:event_ids]) &&
+           memory[:events_order] == events_order &&
+           memory[:events_to_show] >= events_to_show
+          received_events.where(id: event_ids).to_a
+        else
+          memory[:last_event_id] = nil
+          reload = true
+          []
+        end
+
+      if reload
+        memory[:events_order] = events_order
+        memory[:events_to_show] = events_to_show
+
+        new_events =
+          if last_event_id = memory[:last_event_id]
+            received_events.where(Event.arel_table[:id].gt(last_event_id)).to_a
+          else
+            source_ids.flat_map { |source_id|
+              # dig twice as many events as the number of
+              # `events_to_show`
+              received_events.where(agent_id: source_id).
+                last(2 * events_to_show)
+            }.sort_by(&:id)
+          end
+
+        unless new_events.empty?
+          memory[:last_event_id] = new_events.last.id
+          events.concat(new_events)
+        end
+      end
+
+      events = sort_events(events).last(events_to_show)
+
+      if reload
+        memory[:event_ids] = events.map(&:id)
+      end
+
+      events
+    end
+
     def receive_web_request(params, method, format)
       unless interpolated['secrets'].include?(params['secret'])
         if format =~ /json/
@@ -184,11 +254,9 @@ module Agents
         end
       end
 
-      source_events = sort_events(received_events.order(id: :desc).limit(events_to_show).to_a)
+      source_events = sort_events(latest_events(), 'events_list_order')
 
-      interpolation_context.stack do
-        interpolation_context['events'] = source_events
-
+      interpolate_with('events' => source_events) do
         items = source_events.map do |event|
           interpolated = interpolate_options(options['template']['item'], event)
           interpolated['guid'] = {'_attributes' => {'isPermaLink' => 'false'},
@@ -215,7 +283,7 @@ module Agents
             'items' => simplify_item_for_json(items)
           }
 
-          return [content, 200]
+          return [content, 200, "application/json", interpolated['response_headers'].presence]
         else
           hub_links = push_hubs.map { |hub|
             <<-XML
@@ -223,16 +291,15 @@ module Agents
             XML
           }.join
 
-          items = simplify_item_for_xml(items)
-                  .to_xml(skip_types: true, root: "items", skip_instruct: true, indent: 1)
-                  .gsub(%r{^</?items>\n}, '')
+          items = items_to_xml(items)
 
-          return [<<-XML, 200, 'text/xml']
+          return [<<-XML, 200, rss_content_type, interpolated['response_headers'].presence]
 <?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0" #{xml_namespace}>
 <channel>
  <atom:link href=#{feed_url(secret: params['secret'], format: :xml).encode(xml: :attr)} rel="self" type="application/rss+xml" />
  <atom:icon>#{feed_icon.encode(xml: :text)}</atom:icon>
+ #{itunes_icon}
 #{hub_links}
  <title>#{feed_title.encode(xml: :text)}</title>
  <description>#{feed_description.encode(xml: :text)}</description>
@@ -250,6 +317,9 @@ module Agents
 
     def receive(incoming_events)
       url = feed_url(secret: interpolated['secrets'].first, format: :xml)
+
+      # Reload new events and update cache
+      latest_events(true)
 
       push_hubs.each do |hub|
         push_to_hub(hub, url)
@@ -320,6 +390,22 @@ module Agents
       else
         item
       end
+    end
+
+    def items_to_xml(items)
+      simplify_item_for_xml(items)
+        .to_xml(skip_types: true, root: "items", skip_instruct: true, indent: 1)
+        .gsub(%r{
+          (?<indent> ^\ + ) < (?<tagname> [^> ]+ ) > \n
+          (?<children>
+            (?: \k<indent> \  < \k<tagname> (?:\ [^>]*)? > [^<>]*? </ \k<tagname> > \n )+
+          )
+          \k<indent> </ \k<tagname> > \n
+        }mx) { $~[:children].gsub(/^ /, '') } # delete redundant nesting of array elements
+        .gsub(%r{
+          (?<indent> ^\ + ) < [^> ]+ /> \n
+        }mx, '') # delete empty elements
+        .gsub(%r{^</?items>\n}, '')
     end
 
     def push_to_hub(hub, url)

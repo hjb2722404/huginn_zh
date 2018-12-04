@@ -12,31 +12,31 @@ module Agents
 
     description do
       <<-MD
-        The S3Agent can watch a bucket for changes or emit an event for every file in that bucket. When receiving events, it writes the data into a file on S3.
+        S3Agent可以监视存储桶的更改，也可以为该存储桶中的每个文件发出事件。 接收事件时，它会将数据写入S3上的文件。
 
         #{'## Include `aws-sdk-core` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-        `mode` must be present and either `read` or `write`, in `read` mode the agent checks the S3 bucket for changed files, with `write` it writes received events to a file in the bucket.
+        `mode` 必须存在且为`read `(读取)或`write`（写入），在读取模式下，代理会检查S3存储桶中是否有已更改的文件，写入时会将接收到的事件写入存储桶中的文件
 
-        ### Universal options
+        ### 通用选项
 
-        To use credentials for the `access_key` and `access_key_secret` use the liquid `credential` tag like so `{% credential name-of-credential %}`
+        要使用access_key和access_key_secret的证书，请使用liquid credential标记，如{％credential name-of-credential％}
 
-        Select the `region` in which the bucket was created.
+        选择创建存储区的`region `(区域)。
 
-        ### Reading
+        ### 读取
 
-        When `watch` is set to `true` the S3Agent will watch the specified `bucket` for changes. An event will be emitted for every detected change.
+        当watch设置为true时，S3Agent将监视指定的存储桶以进行更改。 每次检测到的更改都会发出一个事件。
 
-        When `watch` is set to `false` the agent will emit an event for every file in the bucket on each sheduled run.
+        当watch设置为false时，代理将在每个已运行的运行中为存储桶中的每个文件发出一个事件。
 
         #{emitting_file_handling_agent_description}
 
-        ### Writing
+        ### 写入
 
-        Specify the filename to use in `filename`, Liquid interpolation is possible to change the name per event.
+        指定要在`filename`中使用的文件名，可以使用液体插值更改每个事件的名称。
 
-        Use [Liquid](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) templating in `data` to specify which part of the received event should be written.
+        在`data`中使用Liquid模板来指定应写入接收事件的哪个部分。
       MD
     end
 

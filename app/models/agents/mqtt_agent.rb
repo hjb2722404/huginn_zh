@@ -6,29 +6,29 @@ module Agents
     gem_dependency_check { defined?(MQTT) }
 
     description <<-MD
-      The MQTT Agent allows both publication and subscription to an MQTT topic.
+
+      MQTT代理允许发布和订阅MQTT主题。
 
       #{'## Include `mqtt` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      MQTT is a generic transport protocol for machine to machine communication.
+      MQTT是用于机器到机器通信的通用传输协议。
 
-      You can do things like:
+      你可以这样做：
 
-       * Publish to [RabbitMQ](http://www.rabbitmq.com/mqtt.html)
-       * Run [OwnTracks, a location tracking tool](http://owntracks.org/) for iOS and Android
-       * Subscribe to your home automation setup like [Ninjablocks](http://forums.ninjablocks.com/index.php?p=/discussion/661/today-i-learned-about-mqtt/p1) or [TheThingSystem](http://thethingsystem.com/dev/supported-things.html)
+       * 发布到 [RabbitMQ](http://www.rabbitmq.com/mqtt.html)
+       * 运行OwnTracks，一款适用于iOS和Android的位置跟踪工具
+       * 订阅您的家庭自动化设置，如Ninjablocks或TheThingSystem
 
-      Simply choose a topic (think email subject line) to publish/listen to, and configure your service.
+      只需选择一个主题（思考电子邮件主题行）即可发布/收听，并配置您的服务。
 
-      It's easy to setup your own [broker](http://jpmens.net/2013/09/01/installing-mosquitto-on-a-raspberry-pi/) or connect to a [cloud service](http://www.cloudmqtt.com)
+      您可以轻松设置自己的代理或连接到云服务
 
-      Hints:
-      Many services run mqtts (mqtt over SSL) often with a custom certificate.
+      提示：许多服务通常使用自定义证书运行mqtts（基于SSL的mqtt）。
 
-      You'll want to download their cert and install it locally, specifying the ```certificate_path``` configuration.
+      您需要下载其证书并在本地安装，指定certificate_path配置。
 
 
-      Example configuration:
+      配置示例：
 
       <pre><code>{
         'uri' => 'mqtts://user:pass@localhost:8883'
@@ -40,8 +40,7 @@ module Agents
       }
       </code></pre>
 
-      Subscribe to CloCkWeRX's TheThingSystem instance (thethingsystem.com), where
-      temperature and other events are being published.
+      订阅CloCkWeRX的TheThingSystem实例（thethingsystem.com），其中发布温度和其他事件。
 
       <pre><code>{
         'uri' => 'mqtt://kcqlmkgx:sVNoccqwvXxE@m10.cloudmqtt.com:13858',
@@ -49,14 +48,15 @@ module Agents
       }
       </code></pre>
 
-      Subscribe to all topics
+      订阅所有主题
+
       <pre><code>{
         'uri' => 'mqtt://kcqlmkgx:sVNoccqwvXxE@m10.cloudmqtt.com:13858',
         'topic' => '/#'
       }
       </code></pre>
 
-      Find out more detail on [subscription wildcards](http://www.eclipse.org/paho/files/mqttdoc/Cclient/wildcard.html)
+      了解有关订阅通配符的更多详细信息
     MD
 
     event_description <<-MD
@@ -77,7 +77,7 @@ module Agents
     end
 
     def working?
-      event_created_within?(interpolated['expected_update_period_in_days']) && !recent_error_logs?
+      (event_created_within?(interpolated['expected_update_period_in_days']) && !recent_error_logs?) || received_event_without_error?
     end
 
     def default_options

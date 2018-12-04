@@ -4,10 +4,9 @@ module Agents
     cannot_receive_events!
 
     description <<-MD
-      The Manual Event Agent is used to manually create Events for testing or other purposes.
+      Manual Event Agent 用于手动创建事件以进行测试或其他目的。
 
-      Do not set options for this Agent.  Instead, connect it to other Agents and create Events
-      using the UI provided on this Agent's Summary page.
+      不要为此代理设置配置项。 而是将其连接到其他代理，并使用此代理的“摘要”页面上提供的UI创建事件.
     MD
 
     event_description "User determined"

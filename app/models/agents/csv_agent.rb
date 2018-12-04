@@ -20,35 +20,35 @@ module Agents
 
     description do
       <<-MD
-        The `CsvAgent` parses or serializes CSV data. When parsing, events can either be emitted for the entire CSV, or one per row.
+        CsvAgent解析或序列化CSV数据。 解析时，可以为整个CSV发出事件，也可以每行发送一个事件。
 
-        Set `mode` to `parse` to parse CSV from incoming event, when set to `serialize` the agent serilizes the data of events to CSV.
+        将模式设置为解析以从传入事件解析CSV，当设置为序列化时，代理会将事件数据血清化为CSV。
 
-        ### Universal options
+        ### 通用选项
 
-        Specify the `separator` which is used to seperate the fields from each other (default is `,`).
+        指定用于将字段彼此分隔开的separator （默认为，）。
 
-        `data_key` sets the key which contains the serialized CSV or parsed CSV data in emitted events.
+        `data_key` 在发出的事件中设置包含序列化CSV或已解析CSV数据的键。
 
-        ### Parsing
+        ### 解析
 
-        If `use_fields` is set to a comma seperated string and the CSV file contains field headers the agent will only extract the specified fields.
+        如果use_fields设置为以逗号分隔的字符串，并且CSV文件包含字段标题，则代理将仅提取指定的字段。
 
-        `output` determines wheather one event per row is emitted or one event that includes all the rows.
+        output确定每行发出一个事件或包含所有行的一个事件。
 
-        Set `with_header` to `true` if first line of the CSV file are field names.
+        如果CSV文件的第一行是字段名称，请将with_header设置为true。
 
         #{receiving_file_handling_agent_description}
 
-        When receiving the CSV data in a regular event use [JSONPath](http://goessner.net/articles/JsonPath/) to select the path in `data_path`. `data_path` is only used when the received event does not contain a 'file pointer'.
+        在常规事件中接收CSV数据时，使用JSONPath选择data_path中的路径。 data_path仅在接收的事件不包含“文件指针”时使用。
 
-        ### Serializing
+        ### 序列化
 
-        If `use_fields` is set to a comma seperated string and the first received event has a object at the specified `data_path` the generated CSV will only include the given fields.
+        如果use_fields设置为逗号分隔字符串，并且第一个接收到的事件在指定的data_path处有一个对象，则生成的CSV将仅包含给定字段。
 
-        Set `with_header` to `true` to include a field header in the CSV.
+        将with_header设置为true以在CSV中包含字段标题
 
-        Use [JSONPath](http://goessner.net/articles/JsonPath/) in `data_path` to select with part of the received events should be serialized.
+        在data_path中使用JSONPath来选择部分接收到的事件应该被序列化。
       MD
     end
 
@@ -161,8 +161,17 @@ module Agents
       end
     end
 
+    def parse_csv_options(mo)
+      options = {
+        col_sep: separator(mo),
+        headers: boolify(mo['with_header']),
+      }
+      options[:liberal_parsing] = true if CSV::DEFAULT_OPTIONS.key?(:liberal_parsing)
+      options
+    end
+
     def parse_csv(io, mo, array = nil)
-      CSV.new(io, col_sep: separator(mo), headers: boolify(mo['with_header'])).each do |row|
+      CSV.new(io, **parse_csv_options(mo)).each do |row|
         if block_given?
           yield get_payload(row, mo)
         else

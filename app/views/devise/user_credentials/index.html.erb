@@ -1,0 +1,67 @@
+<div class='container'>
+  <div class='row'>
+    <div class='col-md-12'>
+      <div class="page-header">
+        <h2>
+          您的证书
+        </h2>
+      </div>
+
+      <blockquote>
+      凭据用于存储许多代理使用的值。 示例可能包括 “twitter_consumer_secret”，
+               “user_full_name”或“user_birthday”.
+      </blockquote>
+
+      <table class='table table-striped'>
+        <tr>
+          <th><%= sortable_column 'credential_name', 'asc', name: 'Name'  %></th>
+          <th><%= sortable_column 'credential_value', 'asc', name: 'Value' %></th>
+        </tr>
+
+        <% @user_credentials.each do |user_credential| %>
+          <tr>
+            <td><%= user_credential.credential_name %></td>
+            <td>
+              <%= truncate user_credential.credential_value %>
+              <div class="btn-group btn-group-xs" style="float: right">
+                <%= link_to '编辑', edit_user_credential_path(user_credential), class: "btn btn-default" %>
+                <%= link_to '删除', user_credential_path(user_credential), method: :delete, data: {confirm: '您确定吗?'}, class: "btn btn-default" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </table>
+
+      <%= paginate @user_credentials, :theme => 'twitter-bootstrap-3' %>
+
+      <br/>
+
+      <div class="btn-group">
+        <%= link_to new_user_credential_path, class: "btn btn-default" do %><span class="glyphicon glyphicon-plus"></span> 创建新证书<% end %>
+        <%= link_to user_credentials_path(format: :json), class: "btn btn-default" do %><span class="glyphicon glyphicon-cloud-download"></span> 下载证书<% end %>
+        <%= link_to '#', data: { toggle: 'modal', target: '#credentials-upload' }, class: "btn btn-default credentials-upload-button" do %><span class="glyphicon glyphicon-upload"></span> 上传证书<% end %>
+      </div>
+
+      <div id="credentials-upload" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <%= form_tag import_user_credentials_path, multipart: true do %>
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                <h4 class="modal-title">上传证书</h4>
+              </div>
+              <div class="modal-body">
+                <p>上载先前从Huginn实例导出的凭证文件.</p>
+                <%= file_field_tag :file, class: 'form-control' %>
+              </div>
+              <div class="modal-footer">
+                <%= button_tag '取消', class: 'btn btn-default', 'data-dismiss' => 'modal' %>
+                <%= submit_tag '上传', class: 'btn btn-primary' %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

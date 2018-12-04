@@ -6,28 +6,25 @@ module Agents
     cannot_receive_events!
 
     description do <<-MD
-      The Webhook Agent will create events by receiving webhooks from any source. In order to create events with this agent, make a POST request to:
+      Webhook Agent将通过从任何来源接收webhook来创建事件。 要使用此代理创建事件，请发出POST请求：
 
       ```
          https://#{ENV['DOMAIN']}/users/#{user.id}/web_requests/#{id || ':id'}/#{options['secret'] || ':secret'}
       ```
 
-      #{'The placeholder symbols above will be replaced by their values once the agent is saved.' unless id}
+      #{' 保存代理后，上面的占位符符号将替换为其值.' unless id}
 
-      Options:
+      配置项说明:
 
-        * `secret` - A token that the host will provide for authentication.
-        * `expected_receive_period_in_days` - How often you expect to receive
-          events this way. Used to determine if the agent is working.
-        * `payload_path` - JSONPath of the attribute in the POST body to be
-          used as the Event payload.  Set to `.` to return the entire message.
-          If `payload_path` points to an array, Events will be created for each element.
-        * `verbs` - Comma-separated list of http verbs your agent will accept.
-          For example, "post,get" will enable POST and GET requests. Defaults
-          to "post".
-        * `response` - The response message to the request. Defaults to 'Event Created'.
-        * `recaptcha_secret` - Setting this to a reCAPTCHA "secret" key makes your agent verify incoming requests with reCAPTCHA.  Don't forget to embed a reCAPTCHA snippet including your "site" key in the originating form(s).
-        * `recaptcha_send_remote_addr` - Set this to true if your server is properly configured to set REMOTE_ADDR to the IP address of each visitor (instead of that of a proxy server).
+        * `secret` - 主机提供的用于身份验证的令牌。
+        * `expected_receive_period_in_days` - 您希望以这种方式接收事件的频率。 用于确定代理是否正常工作。
+        * `payload_path` -  POST主体中属性的JSONPath，用作事件的有效内容。 设置成`.`将返回整个消息。 如果`payload_path`指向数组，则将为数组中每个元素创建事件。
+        * `verbs` - 逗号分隔的代理将接受的http动词列表。 例如，“post，get”将启用POST和GET请求。 默认为“post”。
+        * `response` - 请求的响应消息。 默认为“事件已创建” 。
+        * `response_headers` - 具有任何自定义响应标头的对象。 (例如: `{"Access-Control-Allow-Origin": "*"}`)
+        * `code` - 请求的响应代码。 默认为'201'。 如果代码为“301”或“302”，则请求将自动重定向到“响应”中定义的URL。
+        * `recaptcha_secret` - 将它设置为 reCAPTCHA“secret” 密钥可使您的代理使用 reCAPTCHA 验证传入请求。 不要忘记在原始表单中嵌入包含“site”键的reCAPTCHA片段。
+        * `recaptcha_send_remote_addr` -  如果您的服务器已正确配置为将REMOTE_ADDR设置为每个访问者（而不是代理服务器的IP地址）的IP地址，请将此项设置为true。
       MD
     end
 
@@ -53,6 +50,9 @@ module Agents
       # check the verbs
       verbs = (interpolated['verbs'] || 'post').split(/,/).map { |x| x.strip.downcase }.select { |x| x.present? }
       return ["Please use #{verbs.join('/').upcase} requests only", 401] unless verbs.include?(method)
+
+      # check the code
+      code = (interpolated['code'].presence || 201).to_i
 
       # check the reCAPTCHA response if required
       if recaptcha_secret = interpolated['recaptcha_secret'].presence
@@ -84,7 +84,11 @@ module Agents
         create_event(payload: payload)
       end
 
-      [response_message, 201]
+      if interpolated['response_headers'].presence
+        [interpolated(params)['response'] || 'Event Created', code, "text/plain", interpolated['response_headers'].presence]
+      else
+        [interpolated(params)['response'] || 'Event Created', code]
+      end
     end
 
     def working?
@@ -95,14 +99,18 @@ module Agents
       unless options['secret'].present?
         errors.add(:base, "Must specify a secret for 'Authenticating' requests")
       end
+
+      if options['code'].present? && options['code'].to_s !~ /\A\s*(\d+|\{.*)\s*\z/
+        errors.add(:base, "Must specify a code for request responses")
+      end
+
+      if options['code'].to_s.in?(['301', '302']) && !options['response'].present?
+        errors.add(:base, "Must specify a url for request redirect")
+      end
     end
 
     def payload_for(params)
       Utils.value_at(params, interpolated['payload_path']) || {}
-    end
-
-    def response_message
-      interpolated['response'] || 'Event Created'
     end
   end
 end

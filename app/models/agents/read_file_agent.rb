@@ -14,9 +14,9 @@ module Agents
 
     description do
       <<-MD
-        The ReadFileAgent takes events from `FileHandling` agents, reads the file, and emits the contents as a string.
+         ReadFile Agent从文件处理代理获取事件，读取文件，并以字符串形式发送内容。
 
-        `data_key` specifies the key of the emitted event which contains the file contents.
+         `data_key`指定包含文件内容的发出事件的键。
 
         #{receiving_file_handling_agent_description}
       MD

@@ -1,26 +1,26 @@
 module Agents
   class TriggerAgent < Agent
     cannot_be_scheduled!
+    can_dry_run!
 
     VALID_COMPARISON_TYPES = %w[regex !regex field<value field<=value field==value field!=value field>=value field>value not\ in]
 
     description <<-MD
-      The Trigger Agent will watch for a specific value in an Event payload.
+      Trigger Agent 将监视事件有效负载中的特定值.
 
-      The `rules` array contains hashes of `path`, `value`, and `type`.  The `path` value is a dotted path through a hash in [JSONPaths](http://goessner.net/articles/JsonPath/) syntax.
+      `rules`数组包含路径，值和类型的哈希值。 路径值是[JSONPaths](http://goessner.net/articles/JsonPath/)语法中通过哈希的虚线路径。 对于简单事件，这通常只是您想要的字段的名称，例如事件的文本键的“text” 。
 
-      The `type` can be one of #{VALID_COMPARISON_TYPES.map { |t| "`#{t}`" }.to_sentence} and compares with the `value`.  Note that regex patterns are matched case insensitively.  If you want case sensitive matching, prefix your pattern with `(?-i)`.
+      类型可以是 #{VALID_COMPARISON_TYPES.map { |t| "`#{t}`" }.to_sentence}，而不是和值进行比较。 请注意，正则表达式模式不区分大小写。 如果你想要区分大小写的匹配，请在模式前加上（？-i）.
 
-      The `value` can be a single value or an array of values. In the case of an array, all items must be strings, and if one or more values match, then the rule matches. Note: avoid using `field!=value` with arrays, you should use `not in` instead.
+      值可以是单个值或值数组。 对于数组，所有项必须是字符串，如果一个或多个值匹配，则规则匹配。 注意：避免对数组使用field！= value，不应该使用
 
-      By default, all rules must match for the Agent to trigger. You can switch this so that only one rule must match by
-      setting `must_match` to `1`.
+      默认情况下，所有规则必须匹配才能触发代理。 您可以通过将`must_match`设置为1来切换此选项，以便只有一个规则必须匹配
 
-      The resulting Event will have a payload message of `message`.  You can use liquid templating in the `message, have a look at the [Wiki](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid) for details.
+      生成的事件将具有消息的有效负载消息。 您可以在`消息中使用液体模板，查看[Wiki](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid)以获取详细信息。
 
-      Set `keep_event` to `true` if you'd like to re-emit the incoming event, optionally merged with 'message' when provided.
+      如果您想重新发出传入事件，请将`keep_event`设置为`true`，并在提供时选择与“message”合并
 
-      Set `expected_receive_period_in_days` to the maximum amount of time that you'd expect to pass between Events being received by this Agent.
+      将`expected_receive_period_in_days`设置为您希望在此代理接收的事件之间传递的最长时间.
     MD
 
     event_description <<-MD

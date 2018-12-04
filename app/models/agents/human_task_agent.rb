@@ -5,21 +5,19 @@ module Agents
     gem_dependency_check { defined?(RTurk) }
 
     description <<-MD
-      The Human Task Agent is used to create Human Intelligence Tasks (HITs) on Mechanical Turk.
+      人工任务代理用于在Mechanical Turk上创建人工智能任务（HIT）。
 
       #{'## Include `rturk` in your Gemfile to use this Agent!' if dependencies_missing?}
 
-      HITs can be created in response to events, or on a schedule.  Set `trigger_on` to either `schedule` or `event`.
+      可以响应事件或按计划创建HIT。 将trigger_on设置为schedule或event。
 
-      # Schedule
+      # 计划任务
 
-      The schedule of this Agent is how often it should check for completed HITs, __NOT__ how often to submit one.  To configure how often a new HIT
-      should be submitted when in `schedule` mode, set `submission_period` to a number of hours.
+      此代理的时间表是检查已完成的HIT的频率，而不是检查提交HIT的频率。 要配置在计划模式下应提交新HIT的频率，请将submission_period设置为小时数。
 
-      # Example
+      # 例子
 
-      If created with an event, all HIT fields can contain interpolated values via [liquid templating](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid).
-      For example, if the incoming event was a Twitter event, you could make a HITT to rate its sentiment like this:
+      如果使用事件创建，则所有HIT字段都可以通过液体模板包含插值。 例如，如果传入的事件是Twitter事件，您可以让HITT评估其情绪，如下所示：
 
           {
             "expected_receive_period_in_days": 2,
@@ -57,28 +55,20 @@ module Agents
             }
           }
 
-      As you can see, you configure the created HIT with the `hit` option.  Required fields are `title`, which is the
-      title of the created HIT, `description`, which is the description of the HIT, and `questions` which is an array of
-      questions.  Questions can be of `type` _selection_ or _free\\_text_.  Both types require the `key`, `name`, `required`,
-      `type`, and `question` configuration options.  Additionally, _selection_ requires a `selections` array of options, each of
-      which contain `key` and `text`.  For _free\\_text_, the special configuration options are all optional, and are
-      `default`, `min_length`, and `max_length`.
+      如您所见，您可以使用命中选项配置创建的HIT。 必填字段是标题，它是创建的HIT的标题，描述，它是HIT的描述，以及问题是一系列问题。 问题可以是类型选择或free_text。 两种类型都需要密钥，名称，必需，类型和问题配置选项。 此外，选择需要选择的选项数组，每个选项包含键和文本。 对于free_text，特殊配置选项都是可选的，并且是default，min_length和max_length。
 
-      By default, all answers are emitted in a single event.  If you'd like separate events for each answer, set `separate_answers` to `true`.
+      默认情况下，所有答案都在一个事件中发出。 如果您希望每个答案都有单独的事件，请将separate_answers设置为true
 
-      # Combining answers
+      # 合并答案
 
-      There are a couple of ways to combine HITs that have multiple `assignments`, all of which involve setting `combination_mode` at the top level.
+      有几种方法可以组合具有多个分配的HIT，所有这些方法都涉及在顶层设置combination_mode
 
-      ## Taking the majority
+      ## 占多数
 
-      Option 1: if all of your `questions` are of `type` _selection_, you can set `combination_mode` to `take_majority`.
-      This will cause the Agent to automatically select the majority vote for each question across all `assignments` and return it as `majority_answer`.
-      If all selections are numeric, an `average_answer` will also be generated.
-
-      Option 2: you can have the Agent ask additional human workers to rank the `assignments` and return the most highly ranked answer.
-      To do this, set `combination_mode` to `poll` and provide a `poll_options` object.  Here is an example:
-
+      选项1：如果您的所有问题都是类型选择，则可以将combination_mode设置为take_majority。 这将导致代理自动为所有分配中的每个问题选择多数投票，并将其作为majority_answer返回。 如果所有选择都是数字，则还会生成average_answer。
+      
+      选项2：您可以让代理人要求其他人员对分配进行排名并返回排名最高的答案。 为此，请将combination_mode设置为poll并提供poll_options对象。 这是一个例子：
+      
           {
             "trigger_on": "schedule",
             "submission_period": 12,
@@ -109,13 +99,13 @@ module Agents
             }
           }
 
-      Resulting events will have the original `answers`, as well as the `poll` results, and a field called `best_answer` that contains the best answer as determined by the poll.  (Note that `separate_answers` won't work when doing a poll.)
+        生成的事件将包含原始答案以及投票结果，以及一个名为best_answer的字段，其中包含由投票确定的最佳答案。 （请注意，执行轮询时，separate_answers不起作用。）
 
-      # Other settings
+      # 其他设置
 
-      `lifetime_in_seconds` is the number of seconds a HIT is left on Amazon before it's automatically closed.  The default is 1 day.
+      lifetime_in_seconds是HIT在自动关闭之前留在亚马逊上的秒数。 默认值为1天。
 
-      As with most Agents, `expected_receive_period_in_days` is required if `trigger_on` is set to `event`.
+      与大多数代理一样，如果trigger_on设置为event，则需要expected_receive_period_in_days。
     MD
 
     event_description <<-MD

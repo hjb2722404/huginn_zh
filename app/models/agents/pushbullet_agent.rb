@@ -17,25 +17,25 @@ module Agents
     class Unauthorized < StandardError; end
 
     description <<-MD
-      The Pushbullet agent sends pushes to a pushbullet device
+      Pushbullet代理将推送发送到pushbullet设备
 
-      To authenticate you need to either the `api_key` or create a `pushbullet_api_key` credential, you can find yours at your account page:
+      要进行身份验证，您需要api_key或创建pushbullet_api_key凭证，您可以在您的帐户页面找到您的：
 
       `https://www.pushbullet.com/account`
 
-      If you do not select an existing device, Huginn will create a new one with the name 'Huginn'.
+      如果您没有选择现有设备，Huginn将创建一个名为'Huginn'的新设备。
 
-      To push to all of your devices, select `All Devices` from the devices list.
+      要推送到所有设备，请从设备列表中选择所有设备。
 
-      You have to provide a message `type` which has to be `note`, `link`, or `address`. The message types `checklist`, and `file` are not supported at the moment.
+      您必须提供必须包含注释，链接或地址的消息类型。 目前不支持消息类型核对表和文件。
 
-      Depending on the message `type` you can use additional fields:
+      根据消息类型，您可以使用其他字段:
 
       * note: `title` and `body`
       * link: `title`, `body`, and `url`
       * address: `name`, and `address`
 
-      In every value of the options hash you can use the liquid templating, learn more about it at the [Wiki](https://github.com/cantino/huginn/wiki/Formatting-Events-using-Liquid).
+      在选项哈希的每个值中，您可以使用液体模板，在Wiki上了解更多信息。
     MD
 
     def default_options

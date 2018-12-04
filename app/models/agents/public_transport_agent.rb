@@ -7,37 +7,37 @@ module Agents
     default_schedule "every_2m"
 
     description <<-MD
-      The Public Transport Request Agent generates Events based on NextBus GPS transit predictions.
+      The Public Transport Request Agent (公共传输请求代理)基于NextBus GPS传输预测生成事件
 
-      Specify the following user settings:
+      指定以下用户设置：
 
       * agency (string)
       * stops (array)
       * alert_window_in_minutes (integer)
 
-      First, select an agency by visiting [http://www.nextbus.com/predictor/adaAgency.jsp](http://www.nextbus.com/predictor/adaAgency.jsp) and finding your transit system.  Once you find it, copy the part of the URL after `?a=`.  For example, for the San Francisco MUNI system, you would end up on [http://www.nextbus.com/predictor/adaDirection.jsp?a=**sf-muni**](http://www.nextbus.com/predictor/adaDirection.jsp?a=sf-muni) and copy "sf-muni".  Put that into this Agent's agency setting.
+      首先，通过访问[http://www.nextbus.com/predictor/adaAgency.jsp](http://www.nextbus.com/predictor/adaAgency.jsp)并找到您的运输系统来选择代理商。 找到后，在？a =之后复制URL的一部分。 例如，对于旧金山MUNI系统，您最终会访问[http://www.nextbus.com/predictor/adaDirection.jsp?a=**sf-muni**](http://www.nextbus.com/predictor/adaDirection.jsp?a=sf-muni)并复制“sf-muni”。 将其添加到此代理的代理商设置中。
+      
+      接下来，找到您关心的停止标记。 
 
-      Next, find the stop tags that you care about. 
+      选择目的地，然后使用n-judah路线。 链接应该是[http://www.nextbus.com/predictor/adaStop.jsp?a=sf-muni&r=N](http://www.nextbus.com/predictor/adaStop.jsp?a=sf-muni&r=N)找到后，在r =之后复制URL的一部分。
 
-      Select your destination and lets use the n-judah route. The link should be [http://www.nextbus.com/predictor/adaStop.jsp?a=sf-muni&r=N](http://www.nextbus.com/predictor/adaStop.jsp?a=sf-muni&r=N) Once you find it, copy the part of the URL after `r=`.
+      该链接可能无法正常工作，但我们只是试图在r =之后获取该部分，因此即使它出现错误，也要继续下一步。
 
-      The link may not work, but we're just trying to get the part after the r=, so even if it gives an error, continue to the next step.
-
-      To find the tags for the sf-muni system, for the N route, visit this URL:
+      要查找sf-muni系统的标签，请访问以下URL：
       [http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=sf-muni&r=**N**](http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=sf-muni&r=N)
 
-      The tags are listed as tag="1234". Copy that number and add the route before it, separated by a pipe '&#124;' symbol.  Once you have one or more tags from that page, add them to this Agent's stop list.  E.g,
+      标签列为tag =“1234”。 复制该数字并在其前面添加路由，用管道“|”符号分隔。 从该页面获得一个或多个标签后，将其添加到此代理的停止列表中。 例如
 
           agency: "sf-muni"
           stops: ["N|5221", "N|5215"]
 
-      Remember to pick the appropriate stop, which will have different tags for in-bound and out-bound.
+      请记住选择适当的停靠点，它将具有入站和出站的不同标记。
 
-      This Agent will generate predictions by requesting a URL similar to the following:
+      此代理将通过请求类似于以下内容的URL生成预测：
 
       [http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni&stops=N&#124;5221&stops=N&#124;5215](http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni&stops=N&#124;5221&stops=N&#124;5215)
 
-      Finally, set the arrival window that you're interested in.  E.g., 5 minutes.  Events will be created by the agent anytime a new train or bus comes into that time window.
+      最后，设置您感兴趣的到达窗口。例如，5分钟。 当新火车或公共汽车进入该时间窗口时，代理人将创建事件。
 
           alert_window_in_minutes: 5
     MD

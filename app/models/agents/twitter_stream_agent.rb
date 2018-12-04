@@ -6,18 +6,17 @@ module Agents
     cannot_receive_events!
 
     description <<-MD
-      The Twitter Stream Agent follows the Twitter stream in real time, watching for certain keywords, or filters, that you provide.
+      Twitter Stream Agent实时跟踪Twitter流，观察您提供的某些关键字或过滤器。
 
       #{twitter_dependencies_missing if dependencies_missing?}
 
-      To follow the Twitter stream, provide an array of `filters`.  Multiple words in a filter must all show up in a tweet, but are independent of order.
-      If you provide an array instead of a filter, the first entry will be considered primary and any additional values will be treated as aliases.
+      要关注Twitter流，请提供一系列过滤器。 过滤器中的多个单词必须全部显示在推文中，但与顺序无关。 如果提供数组而不是过滤器，则第一个条目将被视为主要条目，任何其他值将被视为别名。
 
-      To be able to use this Agent you need to authenticate with Twitter in the [Services](/services) section first.
+      为了能够使用此代理，您需要首先在“服务”部分中使用Twitter进行身份验证。
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.
+      将expected_update_period_in_days设置为您希望在此代理创建的事件之间传递的最长时间
 
-      `generate` should be either `events` or `counts`.  If set to `counts`, it will output event summaries whenever the Agent is scheduled.
+      `generate` 应该是事件或计数。 如果设置为计数，则只要安排了代理，它就会输出事件摘要。
     MD
 
     event_description <<-MD
@@ -125,7 +124,7 @@ module Agents
     end
 
     def self.setup_worker
-      Agents::TwitterStreamAgent.active.group_by { |agent| agent.twitter_oauth_token }.map do |oauth_token, agents|
+      Agents::TwitterStreamAgent.active.order(:id).group_by { |agent| agent.twitter_oauth_token }.map do |oauth_token, agents|
         if Agents::TwitterStreamAgent.dependencies_missing?
           STDERR.puts Agents::TwitterStreamAgent.twitter_dependencies_missing
           STDERR.flush

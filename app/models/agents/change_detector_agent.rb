@@ -3,13 +3,13 @@ module Agents
     cannot_be_scheduled!
 
     description <<-MD
-      The Change Detector Agent receives a stream of events and emits a new event when a property of the received event changes.
+      The Change Detector Agent  更改检测器代理接收事件流，并在接收到的事件的属性更改时发出新事件。
 
-      `property` specifies the property to be watched.
+      property指定一个Liquid模板，该模板扩展为要监视的属性，您可以在其中使用变量last_property作为最后一个属性值。 如果要检测新的最低价格，请尝试以下操作：{％assign drop = last_property | 减去：price％} {％if last_property == blank或drop> 0％} {{price | 默认值：last_property}} {％else％} {{last_property}} {％endif％}
 
-      `expected_update_period_in_days` is used to determine if the Agent is working.
+      `expected_update_period_in_days` 用于确定代理是否正常工作。
 
-      The resulting event will be a copy of the received event.
+      结果事件将是收到的事件的副本.
     MD
 
     event_description <<-MD
@@ -43,7 +43,10 @@ module Agents
 
     def receive(incoming_events)
       incoming_events.each do |event|
-        handle(interpolated(event), event)
+        interpolation_context.stack do
+          interpolation_context['last_property'] = last_property
+          handle(interpolated(event), event)
+        end
       end
     end
 

@@ -7,24 +7,20 @@ module Agents
     API_URL = 'https://new.boxcar.io/api/notifications'
 
     description <<-MD
-      The Boxcar agent sends push notifications to iPhone.
+      Boxcar代理向iPhone发送推送通知。
 
-      To be able to use the Boxcar end-user API, you need your `Access Token`.
-      The access token is available on general "Settings" screen of Boxcar iOS
-      app or from Boxcar Web Inbox settings page.
+      为了能够使用Boxcar最终用户API，您需要访问令牌。 访问令牌可在Boxcar iOS应用程序的常规“设置”屏幕或Boxcar Web收件箱设置页面中使用。
+      
+      请在user_credentials选项中提供您的访问令牌。 如果您要使用凭据，请将user_credentials选项设置为{％credential CREDENTIAL_NAME％}。
 
-      Please provide your access token in the `user_credentials` option. If
-      you'd like to use a credential, set the `user_credentials` option to `{%
-      credential CREDENTIAL_NAME %}`.
+      配置项:
 
-      Options:
-
-      * `user_credentials` - Boxcar access token.
-      * `title` - Title of the message.
-      * `body` - Body of the message.
-      * `source_name` - Name of the source of the message. Set to `Huginn` by default.
-      * `icon_url` - URL to the icon.
-      * `sound` - Sound to be played for the notification. Set to 'bird-1' by default.
+      * `user_credentials` -  Boxcar访问令牌
+      * `title` -  消息的标题。
+      * `body` - 消息的正文。
+      * `source_name` - 消息来源的名称。 默认设置为Huginn。
+      * `icon_url` - 图标的URL。
+      * `sound` - 通知播放的声音。 默认设置为“bird-1”。
     MD
 
     def default_options

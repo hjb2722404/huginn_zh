@@ -8,30 +8,29 @@ module Agents
     API_URL = 'https://api.pushover.net/1/messages.json'
 
     description <<-MD
-      The Pushover Agent receives and collects events and sends them via push notification to a user/group.
+      Pushover Agent接收并收集事件，并通过推送通知将其发送给用户/组。
 
-      **You need a Pushover API Token:** [https://pushover.net/apps/build](https://pushover.net/apps/build)
+      **您需要一个Pushover API令牌:** [https://pushover.net/apps/build](https://pushover.net/apps/build)
 
-      **You must provide** a `message` or `text` key that will contain the body of the notification. This can come from an event or be set as a default. Pushover API has a `512` Character Limit including `title`. `message` will be truncated.
+      * `token`: 您的应用程序的API令牌
+      * `user`: 用户或组密钥（不是电子邮件地址）
+      * `expected_receive_period_in_days`:  是您希望在此代理接收的事件之间传递的最大天数。
 
-      * `token`: your application's API token
-      * `user`: the user or group key (not e-mail address).
-      * `expected_receive_period_in_days`:  is maximum number of days that you would expect to pass between events being received by this agent.
+      以下选项均为[Liquid](https://github.com/huginn/huginn/wiki/Formatting-Events-using-Liquid) 模板，其评估值将推送到Pushover API。 只需要message参数，如果是空白，则省略API调用。 
 
-      Your event can provide any of the following optional parameters or you can provide defaults:
+      Pushover API有512个字符限制，包括标题。 消息将被截断.
 
-      * `device` - your user's device name to send the message directly to that device, rather than all of the user's devices
-      * `title` or `subject` - your notification's title
-      * `url` - a supplementary URL to show with your message - `512` Character Limit
-      * `url_title` - a title for your supplementary URL, otherwise just the URL is shown - `100` Character Limit
-      * `priority` - send as `-1` to always send as a quiet notification, `0` is default, `1` to display as high-priority and bypass the user's quiet hours, or `2` for emergency priority: [Please read Pushover Docs on Emergency Priority](https://pushover.net/api#priority)
-      * `sound` - the name of one of the sounds supported by device clients to override the user's default sound choice. [See PushOver docs for sound options.](https://pushover.net/api#sounds)
-      * `retry` - Required for emergency priority - Specifies how often (in seconds) the Pushover servers will send the same notification to the user. Minimum value: `30`
-      * `expire` - Required for emergency priority - Specifies how many seconds your notification will continue to be retried for (every retry seconds). Maximum value: `86400`
-
-      Your event can also pass along a timestamp parameter:
-
-      * `timestamp` - a [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) of your message's date and time to display to the user, rather than the time your message is received by the Pushover API.
+      * `message` - 你的信息（必填）
+      * `device` - 用户的设备名称将消息直接发送到该设备，而不是所有用户的设备。
+      * `title` or `subject` - 你的通知标题
+      * `url` - 与您的消息一起显示的补充URL - 512字符限制。
+      * `url_title` - 您的补充URL的标题，否则只显示URL - 100字符限制
+      * `timestamp` - 消息的Unix时间戳显示给用户的日期和时间，而不是Pushover API接收消息的时间。
+      * `priority` - 发送为`-1`始终作为安静通知发送，`0`表示默认，`1`表示高优先级并绕过用户的安静时间，或`2`表示紧急优先：[请阅读Pushover Docs](https://pushover.net/api#priority).
+      * `sound` - 设备客户端支持的声音之一的名称，以覆盖用户的默认声音选择。 有关声音选项，[请参阅PushOver文档](https://pushover.net/api#sounds)
+      * `retry` - 紧急优先级必需 - 指定Pushover服务器向用户发送相同通知的频率（以秒为单位）。 最低价值：`30`
+      * `expire` - 紧急优先级必需 - 指定继续重试通知的秒数（每次重试秒数）。 最大值：`86400`
+      * `html` - 设置为`true`以使Pushover的应用程序将消息内容显示为HTML
 
     MD
 
@@ -39,15 +38,17 @@ module Agents
       {
         'token' => '',
         'user' => '',
-        'message' => 'a default message',
-        'device' => '',
-        'title' => '',
-        'url' => '',
-        'url_title' => '',
-        'priority' => '0',
-        'sound' => 'pushover',
-        'retry' => '0',
-        'expire' => '0',
+        'message' => '{{ message }}',
+        'device' => '{{ device }}',
+        'title' => '{{ title }}',
+        'url' => '{{ url }}',
+        'url_title' => '{{ url_title }}',
+        'priority' => '{{ priority }}',
+        'timestamp' => '{{ timestamp }}',
+        'sound' => '{{ sound }}',
+        'retry' => '{{ retry }}',
+        'expire' => '{{ expire }}',
+        'html' => 'false',
         'expected_receive_period_in_days' => '1'
       }
     end
@@ -60,37 +61,52 @@ module Agents
 
     def receive(incoming_events)
       incoming_events.each do |event|
-        payload_interpolated = interpolated(event)
-        message = (event.payload['message'].presence || event.payload['text'].presence || payload_interpolated['message']).to_s
-        if message.present?
-          post_params = {
-            'token' => payload_interpolated['token'],
-            'user' => payload_interpolated['user'],
-            'message' => message
-          }
+        interpolate_with(event) do
+          post_params = {}
 
-          post_params['device'] = event.payload['device'].presence || payload_interpolated['device']
-          post_params['title'] = event.payload['title'].presence || event.payload['subject'].presence || payload_interpolated['title']
+          # required parameters
+          %w[
+            token
+            user
+            message
+          ].all? { |key|
+            if value = String.try_convert(interpolated[key].presence)
+              post_params[key] = value
+            end
+          } or next
 
-          url = (event.payload['url'].presence || payload_interpolated['url'] || '').to_s
-          url = url.slice 0..512
-          post_params['url'] = url
-
-          url_title = (event.payload['url_title'].presence || payload_interpolated['url_title']).to_s
-          url_title = url_title.slice 0..100
-          post_params['url_title'] = url_title
-
-          post_params['priority'] = (event.payload['priority'].presence || payload_interpolated['priority']).to_i
-
-          if event.payload.has_key? 'timestamp'
-            post_params['timestamp'] = (event.payload['timestamp']).to_s
+          # optional parameters
+          %w[
+            device
+            title
+            url
+            url_title
+            priority
+            timestamp
+            sound
+            retry
+            expire
+          ].each do |key|
+            if value = String.try_convert(interpolated[key].presence)
+              case key
+              when 'url'
+                value.slice!(512..-1)
+              when 'url_title'
+                value.slice!(100..-1)
+              end
+              post_params[key] = value
+            end
           end
-
-          post_params['sound'] = (event.payload['sound'].presence || payload_interpolated['sound']).to_s
-
-          post_params['retry'] = (event.payload['retry'].presence || payload_interpolated['retry']).to_i
-
-          post_params['expire'] = (event.payload['expire'].presence || payload_interpolated['expire']).to_i
+          # html is special because String.try_convert(true) gives nil (not even "nil", just nil)
+          if value = interpolated['html'].presence
+            post_params['html'] =
+              case value.to_s
+              when 'true', '1'
+                '1'
+              else
+                '0'
+              end
+          end
 
           send_notification(post_params)
         end
@@ -102,8 +118,9 @@ module Agents
     end
 
     def send_notification(post_params)
-      response = HTTParty.post(API_URL, :query => post_params)
+      response = HTTParty.post(API_URL, query: post_params)
       puts response
+      log "Sent the following notification: \"#{post_params.except('token').inspect}\""
     end
   end
 end

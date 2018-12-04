@@ -3,31 +3,25 @@ module Agents
     cannot_be_scheduled!
 
     description <<-MD
-      The Attribute Difference Agent receives events and emits a new event with
-      the difference or change of a specific attribute in comparison to the previous
-      event received.
+      Attribute Difference Agent 接收事件并发出新事件，其具有与先前接收的事件相比的特定属性的差异或变化。
 
-      `path` specifies the JSON path of the attribute to be used from the event.
+      `path`  指定要从事件中使用的属性的JSON路径。
 
-      `output` specifies the new attribute name that will be created on the original payload
-      and it will contain the difference or change.
+      `output` 指定将在原始有效内容上创建的新属性名称，它将包含差异或更改。
 
-      `method` specifies if it should be...
+      `method` 指定它是否应该.....
 
-      * `percentage_change` eg. Previous value was `160`, new value is `116`. Percentage change is `-27.5`
-      * `decimal_difference` eg. Previous value was `5.5`, new value is `15.2`. Difference is `9.7`
-      * `integer_difference` eg. Previous value was `50`, new value is `40`. Difference is `-10`
+      * `percentage_change` 例如： 之前的值为160，新值为116.百分比变化为-27.5
+      * `decimal_difference` 例如： 先前的值为5.5，新值为15.2。 差异是9.7
+      * `integer_difference` 例如： 之前的值为50，新值为40.差值为-10
 
-      `decimal_precision` defaults to `3`, but you can override this if you want.
+      `decimal_precision` 默认为3，但如果需要，您可以覆盖它。
 
-      `expected_update_period_in_days` is used to determine if the Agent is working.
+      `expected_update_period_in_days` 用于确定代理是否正常工作。
 
-      The resulting event will be a copy of the received event with the difference
-      or change added as an extra attribute. If you use the `percentage_change` the
-      attribute will be formatted as such `{{attribute}}_change`, otherwise it will
-      be `{{attribute}}_diff`.
+      生成的事件将是已接收事件的副本，并将差异或更改添加为额外属性。 如果您使用percentage_change，则属性将被格式化为{{attribute}} _ change，否则它将是{{attribute}} _ diff。
 
-      All configuration options will be liquid interpolated based on the incoming event.
+      所有配置选项都将根据传入事件进行liquid插值。
     MD
 
     event_description <<-MD

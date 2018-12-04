@@ -5,30 +5,30 @@ module Agents
     cannot_receive_events!
 
     description <<-MD
-      The Twitter User Agent either follows the timeline of a specific Twitter user or follows your own home timeline including both your tweets and tweets from people whom you are following.
+      Twitter用户代理遵循特定Twitter用户的时间表，或遵循您自己的家庭时间线，包括您的推文和您关注的人的推文。
 
       #{twitter_dependencies_missing if dependencies_missing?}
 
-      To be able to use this Agent you need to authenticate with Twitter in the [Services](/services) section first.
+      为了能够使用此代理，您需要首先在“服务”部分中使用Twitter进行身份验证。
 
-      To follow a Twitter user set `choose_home_time_line` to `false` and provide the `username`.
+      要关注Twitter用户，请将choose_home_time_line设置为false并提供用户名。
 
-      To follow your own home timeline set `choose_home_time_line` to `true`.
+      要按照您自己的家庭时间表，请将choose_home_time_line设置为true。
 
-      Set `include_retweets` to `false` to not include retweets (default: `true`)
+      将include_retweets设置为false以不包含转发（默认值：true）
       
-      Set `exclude_replies` to `true` to exclude replies (default: `false`)
+      将exclude_replies设置为true以排除回复（默认值：false）
 
-      Set `expected_update_period_in_days` to the maximum amount of time that you'd expect to pass between Events being created by this Agent.
+      将expected_update_period_in_days设置为您希望在此代理创建的事件之间传递的最长时间。
 
-      Set `starting_at` to the date/time (eg. `Mon Jun 02 00:38:12 +0000 2014`) you want to start receiving tweets from (default: agent's `created_at`)
+      将starting_at设置为日期/时间（例如，2014年6月2日00:38:12 +0000）你想开始接收推文（默认：代理商的created_at）
     MD
 
     event_description <<-MD
       Events are the raw JSON provided by the [Twitter API](https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline). Should look something like:
           {
              ... every Tweet field, including ...
-            "text": "something",
+            "full_text": "something",
             "user": {
               "name": "Mr. Someone",
               "screen_name": "Someone",
@@ -98,7 +98,7 @@ module Agents
 
     def check
       since_id = memory['since_id'] || nil
-      opts = {:count => 200, :include_rts => include_retweets?, :exclude_replies => exclude_replies?, :include_entities => true, :contributor_details => true}
+      opts = {:count => 200, :include_rts => include_retweets?, :exclude_replies => exclude_replies?, :include_entities => true, :contributor_details => true, tweet_mode: 'extended'}
       opts.merge! :since_id => since_id unless since_id.nil?
 
       if choose_home_time_line?
