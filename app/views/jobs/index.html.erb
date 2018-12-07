@@ -63,7 +63,7 @@
               <% if (!job.locked_at && !job.locked_by) || job.failed_at.present? %>
                 <div class="btn-group btn-group-xs" style="float: right">
                   <% if (job.run_at > Time.now) || job.failed_at.present? %>
-                    <%= link_to '理解运行', run_job_path(job), class: "btn btn-default", method: :put %>
+                    <%= link_to '立即运行', run_job_path(job), class: "btn btn-default", method: :put %>
                   <% end %>
                   <%= link_to '删除', job_path(job), class: "btn btn-danger", method: :delete, data: { confirm: 'Really delete this job?' } %>
                 </div>

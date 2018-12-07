@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Ruby 2.0 is the minimum requirement
-ruby ['2.0.0', RUBY_VERSION].max
+ruby ['2.5.3', RUBY_VERSION].max
 
 # Load vendored dotenv gem and .env file
 require File.join(File.dirname(__FILE__), 'lib/gemfile_helper.rb')

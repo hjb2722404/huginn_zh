@@ -83,7 +83,7 @@
 
             <% if @agent.can_create_events? %>
               <p>
-                <b>事件持续:</b>
+                <b>事件持存:</b>
                 <%= (Agent::EVENT_RETENTION_SCHEDULES.detect {|s| s.last == @agent.keep_events_for } || [@agent.keep_events_for]).first %>
               </p>
 
@@ -116,7 +116,7 @@
 
             <% if @agent.can_receive_events? %>
               <p>
-                <b>事件来源:</b>
+                <b>上级代理:</b>
                 <% if (agents = @agent.sources).length > 0 %>
                   <%= agents.map { |agent| link_to(agent.name, agent_path(agent)) }.to_sentence.html_safe %>
                 <% else %>
@@ -132,7 +132,7 @@
 
             <% if @agent.can_create_events? %>
               <p>
-                <b>事件接收者:</b>
+                <b>下级代理:</b>
                 <% if (agents = @agent.receivers).length > 0 %>
                   <%= agents.map { |agent| link_to(agent.name, agent_path(agent)) }.to_sentence.html_safe %>
                 <% else %>

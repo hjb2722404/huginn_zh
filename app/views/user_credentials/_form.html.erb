@@ -13,12 +13,12 @@
   <div class="row">
     <div class="col-md-4">
       <div class="form-group">
-        <%= f.label :credential_name "证书名称" %>
+        <%= f.label :credential_name, "证书名称" %>
         <%= f.text_field :credential_name, :class => 'form-control' %>
       </div>
 
       <div class="form-group">
-        <%= f.label :mode %>
+        <%= f.label :mode,"模式" %>
         <%= f.select :mode, options_for_select(UserCredential::MODES.map {|s| [s.classify, s] }, @user_credential.mode), {}, :class => 'form-control' %>
       </div>
     </div>
@@ -27,7 +27,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <%= f.label :credential_value "证书值" %>
+        <%= f.label :credential_value, "证书值" %>
         <%= f.text_area :credential_value, :class => 'form-control', :rows => 10 %>
         <div id="ace-credential-value"></div>
       </div>

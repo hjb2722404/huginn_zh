@@ -35,7 +35,7 @@ bin/setup_heroku
 
           <% if User.using_invitation_code? %>
             <div class="form-group">
-              <%= f.label :invitation_code, class: 'col-md-4 control-label' %>
+              <%= f.label :邀请码, class: 'col-md-4 control-label' %>
               <div class="col-md-6">
                 <%= f.text_field :invitation_code, class: 'form-control' %>
                 <span class="help-inline">我们尚未向公众开放。 如果您有邀请码，请在此处输入.</span>
